@@ -47,8 +47,9 @@ class Ui_MainWindow(object):
         def build_tree(parent_item, parent_id):
             if parent_id in nodes:
                 for row in nodes[parent_id]:
-                    node_id, _, _, _, name, _ = row
+                    node_id, _, _, _, name, data = row
                     item = QtWidgets.QTreeWidgetItem(parent_item, [name])
+                    item.setData(0, QtCore.Qt.UserRole, data)
                     build_tree(item, node_id)
 
         tree = MyTreeWidget(self.centralwidget)
@@ -91,11 +92,19 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
             if parent_item is not None:
                 self.setCurrentItem(parent_item)
 
+def handle_item_selection():
+    selected_items = ui.treeWidget.selectedItems()
+    if selected_items:
+        selected_item = selected_items[0]
+        data = selected_item.data(0, QtCore.Qt.UserRole)  # Получаем данные из пользовательской части элемента
+        print("Selected Data:", data)
+
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
+    ui.treeWidget.itemSelectionChanged.connect(handle_item_selection)
     MainWindow.show()
     sys.exit(app.exec_())
