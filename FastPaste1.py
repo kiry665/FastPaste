@@ -50,6 +50,8 @@ class Ui_MainWindow(object):
                     node_id, _, _, _, name, data = row
                     item = QtWidgets.QTreeWidgetItem(parent_item, [name])
                     item.setData(0, QtCore.Qt.UserRole, data)
+                    tooltip_text = str(data)
+                    item.setToolTip(0, tooltip_text)
                     build_tree(item, node_id)
 
         tree = MyTreeWidget(self.centralwidget)
@@ -98,6 +100,7 @@ def handle_item_selection():
         selected_item = selected_items[0]
         data = selected_item.data(0, QtCore.Qt.UserRole)  # Получаем данные из пользовательской части элемента
         print("Selected Data:", data)
+
 
 if __name__ == "__main__":
     import sys
