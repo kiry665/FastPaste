@@ -1,4 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import *
 import sqlite3
 
 class Ui_MainWindow(object):
@@ -68,6 +69,7 @@ class Ui_MainWindow(object):
         return tree
 
 class MyTreeWidget(QtWidgets.QTreeWidget):
+
     def keyPressEvent(self, event):
         key = event.key()
         current_item = self.currentItem()
@@ -99,7 +101,16 @@ def handle_item_selection():
     if selected_items:
         selected_item = selected_items[0]
         data = selected_item.data(0, QtCore.Qt.UserRole)  # Получаем данные из пользовательской части элемента
+
         print("Selected Data:", data)
+
+        position = ui.treeWidget.visualItemRect(selected_item).topRight()
+
+        window_position = MainWindow.geometry().topLeft()
+
+        tooltip_position = window_position + position
+
+        QtWidgets.QToolTip.showText(tooltip_position, str(data))
 
 
 if __name__ == "__main__":
@@ -109,5 +120,6 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     ui.treeWidget.itemSelectionChanged.connect(handle_item_selection)
+
     MainWindow.show()
     sys.exit(app.exec_())
