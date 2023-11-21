@@ -12,12 +12,13 @@ class Ui_MainWindow(object):
         MainWindow.setStatusTip("")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        #QtWidgets.QTreeWidget
-        self.treeWidget = Ui_MainWindow.create_tree_from_database(self, Ui_MainWindow.get_abspath('Local.db'), "Tree")
+
+        self.treeWidget = Ui_MainWindow.create_tree_from_database(self, Ui_MainWindow.get_abspath("Local.db"), "Tree")
         self.treeWidget.setGeometry(QtCore.QRect(0, 0, 400, 471))
         self.treeWidget.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.treeWidget.setObjectName("treeWidget")
         self.treeWidget.header().setVisible(False)
+        self.treeWidget.setCurrentItem(self.treeWidget.topLevelItem(0))
 
 
         self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
@@ -46,12 +47,6 @@ class Ui_MainWindow(object):
         __sortingEnabled = self.treeWidget.isSortingEnabled()
         self.treeWidget.setSortingEnabled(False)
         self.treeWidget.setSortingEnabled(__sortingEnabled)
-
-    def changeEvent(self, event):
-        if event.type() == QEvent.WindowStateChange:
-            if self.windowState() & Qt.WindowMinimized:
-                print("Окно свёрнуто")
-                event.accept()
 
     def create_tree_from_database(self, database_file, table_name):
         conn = sqlite3.connect(database_file)
@@ -100,6 +95,7 @@ class Ui_MainWindow(object):
         conn.close()
         return tree
 
+    #Абсолютный путь для файлов
     def get_abspath(name):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         file_path = os.path.join(dir_path, name)
@@ -119,6 +115,8 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
     #Строгий фокус
     def focusOutEvent(self, event):
         self.setFocus()
+
+    #События кнопок
     def keyPressEvent(self, event):
         key = event.key()
         current_item = self.currentItem()
@@ -161,23 +159,8 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
                     self.setCurrentItem(current_item.child(0))
                 else:
                     self.expandItem(current_item)
-
-            if (current_item is not None and current_item.childCount() == 0):
-                data = current_item.data(0, QtCore.Qt.UserRole)
-                pyperclip.copy(str(data))
-
-                MainWindow.hide()
-
-                #keyboard = Controller()
-
-                with self.keyboard.pressed(Key.ctrl):
-                    self.keyboard.press('v')
-                    self.keyboard.release('v')
-
-                if(MainWindow.checkBox.isChecked()):
-                    QtCore.QTimer.singleShot(100, lambda: app.quit())
-                else:
-                    MainWindow.show()
+            else:
+                self.paste()
 
         # Обработка нажатия Backspace для возврата на уровень выше
         if key == QtCore.Qt.Key_Backspace:
@@ -196,11 +179,15 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         self.handle_item_selection()
             #TODO клавиша вниз
 
+    def mouseDoubleClickEvent(self, e):
+        self.paste()
+
+    #Действия при изменении выбранного элемента
     def handle_item_selection(self):
         selected_items = self.selectedItems()
         if selected_items:
             selected_item = selected_items[0]
-            data = selected_item.data(0, QtCore.Qt.UserRole)  # Получаем данные из пользовательской части элемента
+            data = selected_item.data(0, QtCore.Qt.UserRole)
             position = ui.treeWidget.visualItemRect(selected_item).topRight()
             window_position = MainWindow.geometry().topLeft()
             tooltip_position = window_position + position
@@ -214,6 +201,23 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
                 self.timer.timeout.connect(self.tooltip.hide)
                 self.timer.start(5000)
 
+    def paste(self):
+        current_item = self.currentItem()
+        if (current_item is not None and current_item.childCount() == 0):
+            data = current_item.data(0, QtCore.Qt.UserRole)
+            pyperclip.copy(str(data))
+            MainWindow.hide()
+            # keyboard = Controller()
+            with self.keyboard.pressed(Key.ctrl):
+                self.keyboard.press('v')
+                self.keyboard.release('v')
+            if (ui.checkBox.isChecked()):
+                QtCore.QTimer.singleShot(1000, lambda: app.quit())
+            else:
+                MainWindow.show()
+
+
+    #Событие сворачивания элемента
     def itemCollapse(self, item):
         self.setCurrentItem(item)
 
