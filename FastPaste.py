@@ -106,11 +106,13 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
     def __init__(self, parent=None):
         super(MyTreeWidget, self).__init__(parent)
         self.itemSelectionChanged.connect(self.handle_item_selection)
+        self.currentItemChanged.connect(self.handle_item_change)
         self.itemCollapsed.connect(self.itemCollapse)
         self.tooltip = QtWidgets.QLabel(self)
         self.tooltip.setWindowFlags(QtCore.Qt.ToolTip)
         self.timer = QTimer()
         self.keyboard = Controller()
+        self.previous = None
 
     #Строгий фокус
     def focusOutEvent(self, event):
@@ -179,16 +181,21 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         self.handle_item_selection()
             #TODO клавиша вниз
 
+    #Событие двойного нажатия мышью
     def mouseDoubleClickEvent(self, e):
         self.paste()
 
+    # Событие сворачивания элемента
+    def itemCollapse(self, item):
+        self.setCurrentItem(item)
+
     #Действия при изменении выбранного элемента
     def handle_item_selection(self):
-        selected_items = self.selectedItems()
-        if selected_items:
-            selected_item = selected_items[0]
-            data = selected_item.data(0, QtCore.Qt.UserRole)
-            position = ui.treeWidget.visualItemRect(selected_item).topRight()
+        current_item = self.currentItem()
+        if current_item:
+            self.refresh_icons()
+            data = current_item.data(0, QtCore.Qt.UserRole)
+            position = ui.treeWidget.visualItemRect(current_item).topRight()
             window_position = MainWindow.geometry().topLeft()
             tooltip_position = window_position + position
 
@@ -201,11 +208,16 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
                 self.timer.timeout.connect(self.tooltip.hide)
                 self.timer.start(5000)
 
+    def handle_item_change(self, current, previous):
+        self.previous = previous
+
+    #Действие вставки текста
     def paste(self):
         current_item = self.currentItem()
         if (current_item is not None and current_item.childCount() == 0):
             data = current_item.data(0, QtCore.Qt.UserRole)
             pyperclip.copy(str(data))
+            self.tooltip.hide()
             MainWindow.hide()
             # keyboard = Controller()
             with self.keyboard.pressed(Key.ctrl):
@@ -214,12 +226,24 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
             if (ui.checkBox.isChecked()):
                 QtCore.QTimer.singleShot(1000, lambda: app.quit())
             else:
-                MainWindow.show()
+                QtCore.QTimer.singleShot(100, lambda: MainWindow.show())
 
+    def refresh_icons(self):
+        if(self.previous):
+            if(self.currentItem().parent() != self.previous.parent()):
+                if(self.currentItem().parent() is None):
+                    for i in range(0, self.topLevelItemCount()):
+                        self.topLevelItem(i).setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/0.png')))
+                else:
+                    for i in range(0, self.currentItem().parent().childCount()):
+                        self.currentItem().parent().child(i).setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/0.png')))
 
-    #Событие сворачивания элемента
-    def itemCollapse(self, item):
-        self.setCurrentItem(item)
+                if (self.previous.parent() is None):
+                    for i in range(0, self.topLevelItemCount()):
+                        self.topLevelItem(i).setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/cross.png')))
+                else:
+                    for i in range(0, self.previous.parent().childCount()):
+                        self.previous.parent().child(i).setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/cross.png')))
 
 if __name__ == "__main__":
     import sys
