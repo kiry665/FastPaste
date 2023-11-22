@@ -4,7 +4,7 @@ import sqlite3
 import os
 import pyperclip
 from pynput.keyboard import Key, Controller
-import threading
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -15,11 +15,16 @@ class Ui_MainWindow(object):
 
         self.treeWidget = Ui_MainWindow.create_tree_from_database(self, Ui_MainWindow.get_abspath("Local.db"), "Tree")
         self.treeWidget.setGeometry(QtCore.QRect(0, 0, 400, 471))
+        self.treeWidget.setMaximumSize(400,471)
         self.treeWidget.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.treeWidget.setObjectName("treeWidget")
         self.treeWidget.header().setVisible(False)
         self.treeWidget.setCurrentItem(self.treeWidget.topLevelItem(0))
-
+        self.treeWidget.resizeColumnToContents(1)
+        header = self.treeWidget.header()
+        header.setStretchLastSection(False)  # Последний столбец больше не растягивается
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        #self.treeWidget.setColumnWidth(1, 10)
 
         self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox.setGeometry(QtCore.QRect(10, 475, 51, 21))
@@ -36,6 +41,8 @@ class Ui_MainWindow(object):
         self.pushButton.setIcon(icon)
         self.pushButton.setIconSize(QtCore.QSize(19, 19))
         self.pushButton.setObjectName("pushButton")
+
+        self.nodes = {}
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
@@ -57,25 +64,26 @@ class Ui_MainWindow(object):
         rows = cursor.fetchall()
 
         # Создаем словарь, где ключом будет id узла, а значением будет список его дочерних узлов
-        nodes = {}
+        self.nodes = {}
         for row in rows:
             node_id, parent_id, position, node_type, name, data = row
-            if parent_id in nodes:
-                nodes[parent_id].append(row)
+            if parent_id in self.nodes:
+                self.nodes[parent_id].append(row)
             else:
-                nodes[parent_id] = [row]
+                self.nodes[parent_id] = [row]
 
-        for parent_id in nodes:
-            nodes[parent_id].sort(key=lambda x: x[2])  # сортируем по полю position
+        for parent_id in self.nodes:
+            self.nodes[parent_id].sort(key=lambda x: x[2])  # сортируем по полю position
 
         # Рекурсивная функция для построения дерева
         def build_tree(parent_item, parent_id):
-            if parent_id in nodes:
-                for row in nodes[parent_id]:
+            if parent_id in self.nodes:
+                for row in self.nodes[parent_id]:
                     node_id, _, position, node_type, name, data = row
                     item = QtWidgets.QTreeWidgetItem(parent_item, [name])
                     item.setData(0, QtCore.Qt.UserRole, data)
-
+                    item.setData(0, QtCore.Qt.UserRole + 1, node_type)
+                    item.setTextAlignment(1, Qt.AlignRight)
                     if(node_type == 0):
                         item.setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/folder.png')))
                     if (node_type == 2):
@@ -84,14 +92,11 @@ class Ui_MainWindow(object):
                     build_tree(item, node_id)
 
         tree = MyTreeWidget(self.centralwidget)
-        tree.setColumnCount(1)  # Один столбец для имени узла
-
+        tree.setColumnCount(2)  # Один столбец для имени узла
         # Строим дерево начиная с корневого узла (узлов с parent_id = 0)
         build_tree(tree, 0)
-
-        #TODO Переопределить выделения
-
-        # Закрываем соединение с базой данных
+        for i in range (0, tree.topLevelItemCount()):
+            tree.topLevelItem(i).setText(1, keys[i])
         conn.close()
         return tree
 
@@ -183,7 +188,14 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
 
     #Событие двойного нажатия мышью
     def mouseDoubleClickEvent(self, e):
-        self.paste()
+        current_item = self.currentItem()
+        if (current_item is not None and current_item.childCount() > 0):
+            if (not current_item.isExpanded()):
+                self.expandItem(current_item)
+            else:
+                self.collapseItem(current_item)
+        else:
+            self.paste()
 
     # Событие сворачивания элемента
     def itemCollapse(self, item):
@@ -193,7 +205,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
     def handle_item_selection(self):
         current_item = self.currentItem()
         if current_item:
-            self.refresh_icons()
+            self.numbering()
             data = current_item.data(0, QtCore.Qt.UserRole)
             position = ui.treeWidget.visualItemRect(current_item).topRight()
             window_position = MainWindow.geometry().topLeft()
@@ -228,25 +240,27 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
             else:
                 QtCore.QTimer.singleShot(100, lambda: MainWindow.show())
 
-    def refresh_icons(self):
-        if(self.previous):
-            if(self.currentItem().parent() != self.previous.parent()):
-                if(self.currentItem().parent() is None):
+    def numbering(self):
+        if (self.previous):
+            if (self.currentItem().parent() != self.previous.parent()):
+                if (self.currentItem().parent() is None):
                     for i in range(0, self.topLevelItemCount()):
-                        self.topLevelItem(i).setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/0.png')))
+                        self.topLevelItem(i).setText(1, keys[i])
                 else:
                     for i in range(0, self.currentItem().parent().childCount()):
-                        self.currentItem().parent().child(i).setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/0.png')))
+                        self.currentItem().parent().child(i).setText(1, keys[i])
 
                 if (self.previous.parent() is None):
                     for i in range(0, self.topLevelItemCount()):
-                        self.topLevelItem(i).setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/cross.png')))
+                        self.topLevelItem(i).setText(1, "")
                 else:
                     for i in range(0, self.previous.parent().childCount()):
-                        self.previous.parent().child(i).setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/cross.png')))
+                        self.previous.parent().child(i).setText(1,"")
+
 
 if __name__ == "__main__":
     import sys
+    keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p']
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
