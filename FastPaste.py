@@ -13,38 +13,38 @@ class Ui_MainWindow(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout.setSpacing(0)
+        self.verticalLayout.setObjectName("verticalLayout")
+
+        self.gridLayout = QtWidgets.QGridLayout()
+        self.gridLayout.setObjectName("gridLayout")
+
         self.treeWidget = Ui_MainWindow.create_tree_from_database(self, Ui_MainWindow.get_abspath("Local.db"), "Tree")
-        self.treeWidget.setGeometry(QtCore.QRect(0, 0, 400, 471))
-        self.treeWidget.setMaximumSize(400,471)
-        self.treeWidget.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.treeWidget.setObjectName("treeWidget")
         self.treeWidget.header().setVisible(False)
-        self.treeWidget.setCurrentItem(self.treeWidget.topLevelItem(0))
-        self.treeWidget.resizeColumnToContents(1)
         header = self.treeWidget.header()
         header.setStretchLastSection(False)  # Последний столбец больше не растягивается
         header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
-        #self.treeWidget.setColumnWidth(1, 10)
+        self.treeWidget.setColumnWidth(1, 0)
+
+        self.gridLayout.addWidget(self.treeWidget, 0, 0, 1, 1)
+        self.verticalLayout.addLayout(self.gridLayout)
+
+        self.gridLayout_2 = QtWidgets.QGridLayout()
+        self.gridLayout_2.setContentsMargins(4, 4, 4, 4)
+        self.gridLayout_2.setSpacing(0)
+        self.gridLayout_2.setObjectName("gridLayout_2")
 
         self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox.setGeometry(QtCore.QRect(10, 475, 51, 21))
-        self.checkBox.setText("Закрыть")
-        self.checkBox.adjustSize()
         self.checkBox.setObjectName("checkBox")
-        self.checkBox.setChecked(True)
+        self.checkBox.setText("Закрыть")
 
-        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(370, 473, 25, 25))
-        self.pushButton.setText("")
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(Ui_MainWindow.get_abspath("Images/cross.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.pushButton.setIcon(icon)
-        self.pushButton.setIconSize(QtCore.QSize(19, 19))
-        self.pushButton.setObjectName("pushButton")
-
-        self.nodes = {}
-
+        self.gridLayout_2.addWidget(self.checkBox, 0, 0, 1, 1)
+        self.verticalLayout.addLayout(self.gridLayout_2)
         MainWindow.setCentralWidget(self.centralwidget)
+
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
