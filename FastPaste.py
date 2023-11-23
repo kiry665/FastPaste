@@ -21,7 +21,7 @@ class Ui_MainWindow(object):
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
 
-        self.treeWidget = Ui_MainWindow.create_tree_from_database(self, Ui_MainWindow.get_abspath("Local.db"), "Tree")
+        self.treeWidget = Ui_MainWindow.create_tree_from_database(self, Ui_MainWindow.get_abspath("Local.db"), "Tree", )
         self.treeWidget.setObjectName("treeWidget")
         self.treeWidget.header().setVisible(False)
         header = self.treeWidget.header()
@@ -91,12 +91,15 @@ class Ui_MainWindow(object):
 
                     build_tree(item, node_id)
 
-        tree = MyTreeWidget(self.centralwidget)
+        tree = MyTreeWidget()
         tree.setColumnCount(2)  # Один столбец для имени узла
         # Строим дерево начиная с корневого узла (узлов с parent_id = 0)
         build_tree(tree, 0)
+
+
         for i in range (0, tree.topLevelItemCount()):
             tree.topLevelItem(i).setText(1, keys[i])
+
         conn.close()
         return tree
 
