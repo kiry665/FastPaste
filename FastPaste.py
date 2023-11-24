@@ -4,6 +4,7 @@ import sqlite3
 import os
 import pyperclip
 from pynput.keyboard import Key, Controller
+import PhraseEditor
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -32,18 +33,29 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.treeWidget, 0, 0, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout)
 
-        self.gridLayout_2 = QtWidgets.QGridLayout()
-        self.gridLayout_2.setContentsMargins(4, 4, 4, 4)
-        self.gridLayout_2.setSpacing(0)
-        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setContentsMargins(4, 4, 4, 4)
+        self.horizontalLayout.setSpacing(0)
+        self.horizontalLayout.setObjectName("horizontalLayout")
 
         self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox.setObjectName("checkBox")
         self.checkBox.setText("Закрыть")
 
-        self.gridLayout_2.addWidget(self.checkBox, 0, 0, 1, 1)
-        self.verticalLayout.addLayout(self.gridLayout_2)
+        self.horizontalLayout.addWidget(self.checkBox)
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
+
+        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton.setObjectName("pushButton")
+        self.pushButton.setText("Редактор записей")
+        self.pushButton.clicked.connect(self.open_phrase_editor)
+
+        self.horizontalLayout.addWidget(self.pushButton)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+
         MainWindow.setCentralWidget(self.centralwidget)
+        # self.center_window(MainWindow)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -54,6 +66,12 @@ class Ui_MainWindow(object):
         __sortingEnabled = self.treeWidget.isSortingEnabled()
         self.treeWidget.setSortingEnabled(False)
         self.treeWidget.setSortingEnabled(__sortingEnabled)
+
+    def center_window(self, window):
+        frame = window.frameGeometry()
+        desktop_center = QtWidgets.QDesktopWidget().availableGeometry().center()
+        frame.moveCenter(desktop_center)
+        window.move(frame.topLeft())
 
     def create_tree_from_database(self, database_file, table_name):
         conn = sqlite3.connect(database_file)
@@ -108,6 +126,12 @@ class Ui_MainWindow(object):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         file_path = os.path.join(dir_path, name)
         return os.path.abspath(file_path)
+
+    def open_phrase_editor(self):
+        self.second_window = QtWidgets.QMainWindow()
+        self.ui = PhraseEditor.Ui_PhraseEditor()
+        self.ui.setupUi(self.second_window)
+        self.second_window.show()
 
 class MyTreeWidget(QtWidgets.QTreeWidget):
     #TODO Сделать нумерацию ветвей дерева для ориентации цифрами
@@ -179,14 +203,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
             if parent_item is not None:
                 self.setCurrentItem(parent_item)
 
-        # Обработка нажатия Up Down для перемещения по уровням
-        if key == QtCore.Qt.Key_Up:
-            if (parrent_item is None):
-                pass
-                #TODO клавиша ВВЕРХ
-        if key == QtCore.Qt.Key_Down:
-            if current_item.isExpanded():
-                print("EXP")
+
         self.handle_item_selection()
             #TODO клавиша вниз
 

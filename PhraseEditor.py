@@ -1,16 +1,20 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QDialog
-from FastPaste import Ui_MainWindow
+from PyQt5.QtWidgets import QDialog, QMessageBox
+import FastPaste
 import sqlite3
 import DialogAddPhrase
-
+import shutil
+import os
 
 class Ui_PhraseEditor(object):
 
     def setupUi(self, PhraseEditor):
         PhraseEditor.setObjectName("PhraseEditor")
         PhraseEditor.resize(500, 400)
+
+        self.database_file = FastPaste.Ui_MainWindow.get_abspath("Local.db")
+        self.table_name = "Tree"
 
         self.centralwidget = QtWidgets.QWidget(PhraseEditor)
         self.centralwidget.setObjectName("centralwidget")
@@ -24,11 +28,11 @@ class Ui_PhraseEditor(object):
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.splitter.setObjectName("splitter")
 
-        self.treeWidget = self.create_tree_from_database(Ui_MainWindow.get_abspath("Local.db"), "Tree")
+        self.treeWidget = self.create_tree_from_database(self.database_file, self.table_name)
         self.treeWidget.setObjectName("treeWidget")
         self.treeWidget.header().setVisible(False)
 
-        self.textEdit = QtWidgets.QTextEdit(self.splitter)
+        self.textEdit = MyTextEdit(self.splitter)
         self.textEdit.setObjectName("textEdit")
         self.textEdit.setText("hgfjh")
 
@@ -44,19 +48,28 @@ class Ui_PhraseEditor(object):
 
         self.actionaddPhrase = QtWidgets.QAction(PhraseEditor)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(Ui_MainWindow.get_abspath("Images/addFile.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(FastPaste.Ui_MainWindow.get_abspath("Images/addFile.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionaddPhrase.setIcon(icon)
         self.actionaddPhrase.setObjectName("actionaddPhrase")
         self.actionaddPhrase.triggered.connect(self.addPhrase)
 
         self.actionremovePhrase = QtWidgets.QAction(PhraseEditor)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(Ui_MainWindow.get_abspath("Images/removeFile.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(FastPaste.Ui_MainWindow.get_abspath("Images/removeFile.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionremovePhrase.setIcon(icon1)
         self.actionremovePhrase.setObjectName("actionremovePhrase")
+        self.actionremovePhrase.triggered.connect(self.removePhrase)
+
+        self.actionsave = QtWidgets.QAction(PhraseEditor)
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap(FastPaste.Ui_MainWindow.get_abspath("Images/save.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionsave.setIcon(icon2)
+        self.actionsave.setObjectName("actionsave")
+        self.actionsave.triggered.connect(self.save)
 
         self.toolBar.addAction(self.actionaddPhrase)
         self.toolBar.addAction(self.actionremovePhrase)
+        self.toolBar.addAction(self.actionsave)
 
         self.retranslateUi(PhraseEditor)
         QtCore.QMetaObject.connectSlotsByName(PhraseEditor)
@@ -89,6 +102,19 @@ class Ui_PhraseEditor(object):
                     else:
                         self.treeWidget.insertTopLevelItem(self.treeWidget.indexOfTopLevelItem(current_item)+1, new_item)
 
+    def removePhrase(self):
+        reply = QtWidgets.QMessageBox.question(self.treeWidget, "Подтверждение удаления", "Вы уверены, что хотите удалить элемент? Все внутренние элементы также будут удалены.", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        current_item = self.treeWidget.currentItem()
+        if reply == QMessageBox.Yes:
+            if current_item is not None:
+                parent = current_item.parent()
+                if parent is not None:
+                    parent.removeChild(current_item)
+                else:
+                    self.treeWidget.takeTopLevelItem(self.treeWidget.indexOfTopLevelItem(current_item))
+
+    def save(self):
+        self.save_tree()
 
     def create_item(self, name, type):
         new_item = QtWidgets.QTreeWidgetItem()
@@ -96,9 +122,9 @@ class Ui_PhraseEditor(object):
         new_item.setData(0, QtCore.Qt.UserRole, "")
         new_item.setData(0, QtCore.Qt.UserRole + 1, type)
         if type == 0:
-            new_item.setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/folder.png')))
+            new_item.setIcon(0, QtGui.QIcon(FastPaste.Ui_MainWindow.get_abspath('Images/folder.png')))
         else:
-            new_item.setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/file.png')))
+            new_item.setIcon(0, QtGui.QIcon(FastPaste.Ui_MainWindow.get_abspath('Images/file.png')))
         return new_item
 
     def create_tree_from_database(self, database_file, table_name):
@@ -131,9 +157,9 @@ class Ui_PhraseEditor(object):
                     item.setData(0, QtCore.Qt.UserRole + 1, node_type)
                     item.setTextAlignment(1, Qt.AlignRight)
                     if (node_type == 0):
-                        item.setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/folder.png')))
+                        item.setIcon(0, QtGui.QIcon(FastPaste.Ui_MainWindow.get_abspath('Images/folder.png')))
                     if (node_type == 2):
-                        item.setIcon(0, QtGui.QIcon(Ui_MainWindow.get_abspath('Images/file.png')))
+                        item.setIcon(0, QtGui.QIcon(FastPaste.Ui_MainWindow.get_abspath('Images/file.png')))
 
                     build_tree(item, node_id)
 
@@ -143,7 +169,50 @@ class Ui_PhraseEditor(object):
         build_tree(tree, 0)
 
         conn.close()
+
         return tree
+
+    def save_tree(self):
+        #self.treeWidget.setCurrentItem()
+        root, extension = os.path.splitext(self.database_file)
+        shutil.copyfile(self.database_file, root + "_backup" + extension)
+        conn = sqlite3.connect(self.database_file)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM " + self.table_name)
+        conn.commit()
+        conn.close()
+        self.start = 0
+        for i in range(self.treeWidget.topLevelItemCount()):
+            root_item = self.treeWidget.topLevelItem(i)
+            self.traverse_tree(root_item,position=i+1)
+
+    def traverse_tree(self, root, parent_id=0, position=1):
+        self.start += 1
+        node_id = self.start
+        # Обработка текущего элемента
+        node_type = root.data(0, Qt.UserRole+1)
+        name = root.text(0)
+        data = root.data(0, Qt.UserRole)
+
+        #print(node_id, parent_id, position, node_type, name, data)
+
+        #Создание соединения с БД
+        conn = sqlite3.connect(self.database_file)
+        cursor = conn.cursor()
+        # Запись данных в таблицу
+        cursor.execute(
+            "INSERT INTO " + self.table_name + " (id, pid, pos, type, name, data) VALUES (?, ?, ?, ?, ?, ?)",
+            (node_id, parent_id, position, node_type, name, data)
+        )
+
+        # Закрытие соединения с БД
+        conn.commit()
+        conn.close()
+
+        # Рекурсивный вызов для дочерних элементов
+        for index in range(root.childCount()):
+            child = root.child(index)
+            self.traverse_tree(child, parent_id=node_id if parent_id is not None else 0, position=index+1)
 
 class MyTreeWidget(QtWidgets.QTreeWidget):
     def __init__(self, parent=None):
@@ -198,16 +267,28 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
                 self.insertTopLevelItem(self.indexOfTopLevelItem(targetItem)+1,sourceItem)
 
     def handle_item_change(self, current, previous):
+        textEdit = self.window().findChild(QtWidgets.QTextEdit)
+        #lineEdit.setText("Find")
         if(current.data(0, QtCore.Qt.UserRole+1) == 0):
-            ui.textEdit.setEnabled(False)
+           textEdit.setEnabled(False)
         elif(current.data(0, QtCore.Qt.UserRole+1) == 2):
-            ui.textEdit.setEnabled(True)
-        if previous:
-            text = ui.textEdit.toPlainText()
-            previous.setData(0, QtCore.Qt.UserRole, text)
+            textEdit.setEnabled(True)
+        # if previous:
+        #     text = textEdit.toPlainText()
+        #     previous.setData(0, QtCore.Qt.UserRole, text)
         if current:
-            ui.textEdit.setText(current.data(0, QtCore.Qt.UserRole))
+            textEdit.setText(current.data(0, QtCore.Qt.UserRole))
 
+class MyTextEdit(QtWidgets.QTextEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.treeWidget = self.window().findChild(QtWidgets.QTreeWidget)
+        self.textChanged.connect(self.on_text_changed)
+
+    def on_text_changed(self):
+        current_item = self.treeWidget.currentItem()
+        if current_item:
+            current_item.setData(0, QtCore.Qt.UserRole, self.toPlainText())
 
 if __name__ == "__main__":
     import sys

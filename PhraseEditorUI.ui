@@ -32,7 +32,13 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QTreeWidget" name="treeWidget"/>
+      <widget class="QTreeWidget" name="treeWidget">
+       <column>
+        <property name="text">
+         <string notr="true">1</string>
+        </property>
+       </column>
+      </widget>
       <widget class="QTextEdit" name="textEdit"/>
      </widget>
     </item>
@@ -53,6 +59,7 @@
    </attribute>
    <addaction name="actionaddPhrase"/>
    <addaction name="actionremovePhrase"/>
+   <addaction name="actionsave"/>
   </widget>
   <action name="actionaddPhrase">
    <property name="icon">
@@ -70,6 +77,15 @@
    </property>
    <property name="text">
     <string>removePhrse</string>
+   </property>
+  </action>
+  <action name="actionsave">
+   <property name="icon">
+    <iconset>
+     <normaloff>Images/save.png</normaloff>Images/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>save</string>
    </property>
   </action>
  </widget>
