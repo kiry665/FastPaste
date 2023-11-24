@@ -128,6 +128,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
 
     #События кнопок
     def keyPressEvent(self, event):
+        super(MyTreeWidget, self).keyPressEvent(event)
         key = event.key()
         current_item = self.currentItem()
         parrent_item = current_item.parent()
