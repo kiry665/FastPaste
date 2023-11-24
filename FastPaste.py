@@ -128,10 +128,11 @@ class Ui_MainWindow(object):
         return os.path.abspath(file_path)
 
     def open_phrase_editor(self):
-        self.second_window = QtWidgets.QMainWindow()
+        self.window = QtWidgets.QMainWindow()
         self.ui = PhraseEditor.Ui_PhraseEditor()
-        self.ui.setupUi(self.second_window)
-        self.second_window.show()
+        self.ui.setupUi(self.window)
+        self.window.show()
+        MainWindow.close()
 
 class MyTreeWidget(QtWidgets.QTreeWidget):
     #TODO Сделать нумерацию ветвей дерева для ориентации цифрами

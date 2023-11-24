@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog, QMessageBox, QAction
 import FastPaste
 import sqlite3
 import DialogAddPhrase
@@ -130,7 +130,6 @@ class Ui_PhraseEditor(object):
     def create_tree_from_database(self, database_file, table_name):
         conn = sqlite3.connect(database_file)
         cursor = conn.cursor()
-
         # Получаем все записи из таблицы
         cursor.execute("SELECT * FROM " + table_name)
         rows = cursor.fetchall()
@@ -160,16 +159,11 @@ class Ui_PhraseEditor(object):
                         item.setIcon(0, QtGui.QIcon(FastPaste.Ui_MainWindow.get_abspath('Images/folder.png')))
                     if (node_type == 2):
                         item.setIcon(0, QtGui.QIcon(FastPaste.Ui_MainWindow.get_abspath('Images/file.png')))
-
                     build_tree(item, node_id)
-
         tree = MyTreeWidget(self.splitter)
-
         # Строим дерево начиная с корневого узла (узлов с parent_id = 0)
         build_tree(tree, 0)
-
         conn.close()
-
         return tree
 
     def save_tree(self):
