@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 
 class DialogAddPhrase(object):
     def setupUi(self, Dialog):
@@ -35,10 +35,12 @@ class DialogAddPhrase(object):
         self.verticalLayout_3.addWidget(self.checkBox)
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
-        self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
+        self.buttonBox = QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
+        self.buttonBox.button(QDialogButtonBox.Ok).setText("ОК")
+        self.buttonBox.button(QDialogButtonBox.Cancel).setText("Отмена")
         self.gridLayout.addWidget(self.buttonBox, 0, 0, 1, 1)
         self.verticalLayout_3.addLayout(self.gridLayout)
 

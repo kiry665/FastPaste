@@ -1,6 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QDialog, QMessageBox, QAction
+from datetime import datetime
 import FastPaste
 import sqlite3
 import DialogAddPhrase
@@ -8,12 +9,11 @@ import shutil
 import os
 
 class Ui_PhraseEditor(object):
-
     def setupUi(self, PhraseEditor):
         PhraseEditor.setObjectName("PhraseEditor")
         PhraseEditor.resize(500, 400)
 
-        self.database_file = FastPaste.Ui_MainWindow.get_abspath("Local.db")
+        self.database_file = FastPaste.Ui_MainWindow.get_abspath("Database/Local.db")
         self.table_name = "Tree"
 
         self.centralwidget = QtWidgets.QWidget(PhraseEditor)
@@ -34,7 +34,7 @@ class Ui_PhraseEditor(object):
 
         self.textEdit = MyTextEdit(self.splitter)
         self.textEdit.setObjectName("textEdit")
-        self.textEdit.setText("hgfjh")
+        self.textEdit.setEnabled(True)
 
         self.splitter.setSizes([200, 300])
         self.verticalLayout.addWidget(self.splitter)
@@ -65,7 +65,7 @@ class Ui_PhraseEditor(object):
         icon2.addPixmap(QtGui.QPixmap(FastPaste.Ui_MainWindow.get_abspath("Images/save.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionsave.setIcon(icon2)
         self.actionsave.setObjectName("actionsave")
-        self.actionsave.triggered.connect(self.save)
+        self.actionsave.triggered.connect(self.save_tree)
 
         self.toolBar.addAction(self.actionaddPhrase)
         self.toolBar.addAction(self.actionremovePhrase)
@@ -73,49 +73,58 @@ class Ui_PhraseEditor(object):
 
         self.retranslateUi(PhraseEditor)
         QtCore.QMetaObject.connectSlotsByName(PhraseEditor)
-
     def retranslateUi(self, PhraseEditor):
         _translate = QtCore.QCoreApplication.translate
         PhraseEditor.setWindowTitle(_translate("PhraseEditor", "Редактировать фразы"))
         self.toolBar.setWindowTitle(_translate("PhraseEditor", "toolBar"))
         self.actionaddPhrase.setText(_translate("PhraseEditor", "addPhrase"))
         self.actionremovePhrase.setText(_translate("PhraseEditor", "removePhrse"))
-
     def addPhrase(self):
         current_item = self.treeWidget.currentItem()
-        parent_item = current_item.parent()
+
         dialog = QtWidgets.QDialog()
         ui = DialogAddPhrase.DialogAddPhrase()
         ui.setupUi(dialog)
         if dialog.exec_() == QDialog.Accepted:
             new_item = self.create_item(ui.get_name(), ui.get_type())
-            root = ui.get_root()
-
-            if root:
-                self.treeWidget.addTopLevelItem(new_item)
+            if current_item is not None:
+                parent_item = current_item.parent()
+                root = ui.get_root()
+                if root:
+                    self.treeWidget.addTopLevelItem(new_item)
+                else:
+                    if(current_item.data(0, QtCore.Qt.UserRole+1) == 0):
+                        current_item.addChild(new_item)
+                    elif (current_item.data(0, QtCore.Qt.UserRole + 1) == 2):
+                        if(parent_item):
+                            parent_item.insertChild(parent_item.indexOfChild(current_item)+1, new_item)
+                        else:
+                            self.treeWidget.insertTopLevelItem(self.treeWidget.indexOfTopLevelItem(current_item)+1, new_item)
             else:
-                if(current_item.data(0, QtCore.Qt.UserRole+1) == 0):
-                    current_item.addChild(new_item)
-                elif (current_item.data(0, QtCore.Qt.UserRole + 1) == 2):
-                    if(parent_item):
-                        parent_item.insertChild(parent_item.indexOfChild(current_item)+1, new_item)
-                    else:
-                        self.treeWidget.insertTopLevelItem(self.treeWidget.indexOfTopLevelItem(current_item)+1, new_item)
-
+                self.treeWidget.addTopLevelItem(new_item)
+                self.treeWidget.setCurrentItem(self.treeWidget.topLevelItem(0))
     def removePhrase(self):
-        reply = QtWidgets.QMessageBox.question(self.treeWidget, "Подтверждение удаления", "Вы уверены, что хотите удалить элемент? Все внутренние элементы также будут удалены.", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        #reply = QtWidgets.QMessageBox.question(self.treeWidget, "Подтверждение удаления", "Вы уверены, что хотите удалить элемент? Все внутренние элементы также будут удалены.", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)\
+        mb = QMessageBox()
+        mb.setIcon(QMessageBox.Question)
+        mb.setWindowTitle("Подтверждение удаления")
+        mb.setText("Вы уверены, что хотите удалить элемент? Все внутренние элементы также будут удалены.")
+        mb.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        mb.button(QMessageBox.Yes).setText("Да")
+        buttonY = mb.button(QMessageBox.Yes)
+        mb.button(QMessageBox.No).setText("Нет")
+        mb.exec_()
         current_item = self.treeWidget.currentItem()
-        if reply == QMessageBox.Yes:
+        if mb.clickedButton() == buttonY:
             if current_item is not None:
                 parent = current_item.parent()
                 if parent is not None:
                     parent.removeChild(current_item)
                 else:
-                    self.treeWidget.takeTopLevelItem(self.treeWidget.indexOfTopLevelItem(current_item))
-
-    def save(self):
-        self.save_tree()
-
+                    if self.treeWidget.topLevelItemCount() > 0:
+                        self.treeWidget.takeTopLevelItem(self.treeWidget.indexOfTopLevelItem(current_item))
+                        self.textEdit.setText("")
+                        self.textEdit.setEnabled(False)
     def create_item(self, name, type):
         new_item = QtWidgets.QTreeWidgetItem()
         new_item.setText(0, name)
@@ -126,27 +135,7 @@ class Ui_PhraseEditor(object):
         else:
             new_item.setIcon(0, QtGui.QIcon(FastPaste.Ui_MainWindow.get_abspath('Images/file.png')))
         return new_item
-
     def create_tree_from_database(self, database_file, table_name):
-        conn = sqlite3.connect(database_file)
-        cursor = conn.cursor()
-        # Получаем все записи из таблицы
-        cursor.execute("SELECT * FROM " + table_name)
-        rows = cursor.fetchall()
-
-        # Создаем словарь, где ключом будет id узла, а значением будет список его дочерних узлов
-        self.nodes = {}
-        for row in rows:
-            node_id, parent_id, position, node_type, name, data = row
-            if parent_id in self.nodes:
-                self.nodes[parent_id].append(row)
-            else:
-                self.nodes[parent_id] = [row]
-
-        for parent_id in self.nodes:
-            self.nodes[parent_id].sort(key=lambda x: x[2])  # сортируем по полю position
-
-        # Рекурсивная функция для построения дерева
         def build_tree(parent_item, parent_id):
             if parent_id in self.nodes:
                 for row in self.nodes[parent_id]:
@@ -159,17 +148,45 @@ class Ui_PhraseEditor(object):
                         item.setIcon(0, QtGui.QIcon(FastPaste.Ui_MainWindow.get_abspath('Images/folder.png')))
                     if (node_type == 2):
                         item.setIcon(0, QtGui.QIcon(FastPaste.Ui_MainWindow.get_abspath('Images/file.png')))
-                    build_tree(item, node_id)
-        tree = MyTreeWidget(self.splitter)
-        # Строим дерево начиная с корневого узла (узлов с parent_id = 0)
-        build_tree(tree, 0)
-        conn.close()
-        return tree
 
+                    build_tree(item, node_id)
+
+        if (os.path.isfile(database_file)):
+            conn = sqlite3.connect(database_file)
+            cursor = conn.cursor()
+
+            # Получаем все записи из таблицы
+            cursor.execute("SELECT * FROM " + table_name)
+            rows = cursor.fetchall()
+
+            # Создаем словарь, где ключом будет id узла, а значением будет список его дочерних узлов
+            self.nodes = {}
+            for row in rows:
+                node_id, parent_id, position, node_type, name, data = row
+                if parent_id in self.nodes:
+                    self.nodes[parent_id].append(row)
+                else:
+                    self.nodes[parent_id] = [row]
+
+            for parent_id in self.nodes:
+                self.nodes[parent_id].sort(key=lambda x: x[2])  # сортируем по полю position
+
+            tree = MyTreeWidget(self.splitter)
+            tree.setColumnCount(1)  # Один столбец для имени узла
+            # Строим дерево начиная с корневого узла (узлов с parent_id = 0)
+            build_tree(tree, 0)
+
+            conn.close()
+            return tree
+
+        else:
+            mb = QtWidgets.QMessageBox()
+            mb.setText("Не удалось найти БД")
+            mb.setWindowTitle("Ошибка")
+            mb.exec_()
+            return self.MyTreeWidget(self.splitter)
     def save_tree(self):
-        #self.treeWidget.setCurrentItem()
-        root, extension = os.path.splitext(self.database_file)
-        shutil.copyfile(self.database_file, root + "_backup" + extension)
+        self.backup_database()
         conn = sqlite3.connect(self.database_file)
         cursor = conn.cursor()
         cursor.execute("DELETE FROM " + self.table_name)
@@ -179,7 +196,6 @@ class Ui_PhraseEditor(object):
         for i in range(self.treeWidget.topLevelItemCount()):
             root_item = self.treeWidget.topLevelItem(i)
             self.traverse_tree(root_item,position=i+1)
-
     def traverse_tree(self, root, parent_id=0, position=1):
         self.start += 1
         node_id = self.start
@@ -207,13 +223,18 @@ class Ui_PhraseEditor(object):
         for index in range(root.childCount()):
             child = root.child(index)
             self.traverse_tree(child, parent_id=node_id if parent_id is not None else 0, position=index+1)
+    def backup_database(self):
+        now = datetime.now()
+        current_time = now.strftime("%d.%m.%y %H.%M")
+        backup_root = FastPaste.Ui_MainWindow.get_abspath("Database/Backup")
+        root, extension = os.path.splitext(self.database_file)
+        shutil.copyfile(self.database_file, backup_root + "_backup "+ current_time + extension)
 
 class MyTreeWidget(QtWidgets.QTreeWidget):
     def __init__(self, parent=None):
         super(MyTreeWidget, self).__init__(parent)
         self.setDragDropMode(MyTreeWidget.InternalMove)
         self.currentItemChanged.connect(self.handle_item_change)
-
     def dropEvent(self, e):
         item = self.itemAt(e.pos())
         drop_indicator_position = self.dropIndicatorPosition()
@@ -224,7 +245,6 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
             e.ignore()
 
             MyTreeWidget.moveItem(self, self.currentItem(),item)
-
     def keyPressEvent(self, event):
         super(MyTreeWidget, self).keyPressEvent(event)
         key = event.key()
@@ -245,7 +265,6 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
             parent_item = current_item.parent()
             if parent_item is not None:
                 self.setCurrentItem(parent_item)
-
     def moveItem(self, sourceItem, targetItem):
         if targetItem is not None:
             sourceParent = sourceItem.parent()
@@ -259,18 +278,15 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
                 targetItem.parent().insertChild(targetItem.parent().indexOfChild(targetItem)+1,sourceItem)
             else:
                 self.insertTopLevelItem(self.indexOfTopLevelItem(targetItem)+1,sourceItem)
-
     def handle_item_change(self, current, previous):
         textEdit = self.window().findChild(QtWidgets.QTextEdit)
         #lineEdit.setText("Find")
-        if(current.data(0, QtCore.Qt.UserRole+1) == 0):
-           textEdit.setEnabled(False)
-        elif(current.data(0, QtCore.Qt.UserRole+1) == 2):
-            textEdit.setEnabled(True)
-        # if previous:
-        #     text = textEdit.toPlainText()
-        #     previous.setData(0, QtCore.Qt.UserRole, text)
         if current:
+            if(current.data(0, QtCore.Qt.UserRole+1) == 0):
+               textEdit.setEnabled(False)
+            elif(current.data(0, QtCore.Qt.UserRole+1) == 2):
+                textEdit.setEnabled(True)
+
             textEdit.setText(current.data(0, QtCore.Qt.UserRole))
 
 class MyTextEdit(QtWidgets.QTextEdit):
@@ -278,7 +294,6 @@ class MyTextEdit(QtWidgets.QTextEdit):
         super().__init__(parent)
         self.treeWidget = self.window().findChild(QtWidgets.QTreeWidget)
         self.textChanged.connect(self.on_text_changed)
-
     def on_text_changed(self):
         current_item = self.treeWidget.currentItem()
         if current_item:

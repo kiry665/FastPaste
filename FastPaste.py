@@ -11,6 +11,7 @@ class Ui_MainWindow(object):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(400, 500)
         MainWindow.setStatusTip("")
+
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
@@ -22,7 +23,7 @@ class Ui_MainWindow(object):
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
 
-        self.treeWidget = Ui_MainWindow.create_tree_from_database(self, Ui_MainWindow.get_abspath("Local.db"), "Tree", )
+        self.treeWidget = Ui_MainWindow.create_tree_from_database(self, Ui_MainWindow.get_abspath("Database/Local.db"), "Tree", )
         self.treeWidget.setObjectName("treeWidget")
         self.treeWidget.header().setVisible(False)
         header = self.treeWidget.header()
@@ -59,41 +60,13 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "FastPaste"))
         __sortingEnabled = self.treeWidget.isSortingEnabled()
         self.treeWidget.setSortingEnabled(False)
         self.treeWidget.setSortingEnabled(__sortingEnabled)
-
-    def center_window(self, window):
-        frame = window.frameGeometry()
-        desktop_center = QtWidgets.QDesktopWidget().availableGeometry().center()
-        frame.moveCenter(desktop_center)
-        window.move(frame.topLeft())
-
     def create_tree_from_database(self, database_file, table_name):
-        conn = sqlite3.connect(database_file)
-        cursor = conn.cursor()
-
-        # Получаем все записи из таблицы
-        cursor.execute("SELECT * FROM " + table_name)
-        rows = cursor.fetchall()
-
-        # Создаем словарь, где ключом будет id узла, а значением будет список его дочерних узлов
-        self.nodes = {}
-        for row in rows:
-            node_id, parent_id, position, node_type, name, data = row
-            if parent_id in self.nodes:
-                self.nodes[parent_id].append(row)
-            else:
-                self.nodes[parent_id] = [row]
-
-        for parent_id in self.nodes:
-            self.nodes[parent_id].sort(key=lambda x: x[2])  # сортируем по полю position
-
-        # Рекурсивная функция для построения дерева
         def build_tree(parent_item, parent_id):
             if parent_id in self.nodes:
                 for row in self.nodes[parent_id]:
@@ -109,24 +82,50 @@ class Ui_MainWindow(object):
 
                     build_tree(item, node_id)
 
-        tree = MyTreeWidget()
-        tree.setColumnCount(2)  # Один столбец для имени узла
-        # Строим дерево начиная с корневого узла (узлов с parent_id = 0)
-        build_tree(tree, 0)
+        if(os.path.isfile(database_file)):
+            conn = sqlite3.connect(database_file)
+            cursor = conn.cursor()
 
+            # Получаем все записи из таблицы
+            cursor.execute("SELECT * FROM " + table_name)
+            rows = cursor.fetchall()
 
-        for i in range (0, tree.topLevelItemCount()):
-            tree.topLevelItem(i).setText(1, keys[i])
+            # Создаем словарь, где ключом будет id узла, а значением будет список его дочерних узлов
+            self.nodes = {}
+            for row in rows:
+                node_id, parent_id, position, node_type, name, data = row
+                if parent_id in self.nodes:
+                    self.nodes[parent_id].append(row)
+                else:
+                    self.nodes[parent_id] = [row]
 
-        conn.close()
-        return tree
+            for parent_id in self.nodes:
+                self.nodes[parent_id].sort(key=lambda x: x[2])  # сортируем по полю position
 
+            tree = MyTreeWidget()
+            tree.setColumnCount(2)  # Один столбец для имени узла
+            # Строим дерево начиная с корневого узла (узлов с parent_id = 0)
+            build_tree(tree, 0)
+
+            for i in range(0, tree.topLevelItemCount()):
+                tree.topLevelItem(i).setText(1, keys[i])
+
+            conn.close()
+            return tree
+
+        else:
+            mb = QtWidgets.QMessageBox()
+            mb.setText("Не удалось найти БД")
+            mb.setWindowTitle("Ошибка")
+            mb.exec_()
+            return MyTreeWidget()
+
+        # Рекурсивная функция для построения дерева
     #Абсолютный путь для файлов
     def get_abspath(name):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         file_path = os.path.join(dir_path, name)
         return os.path.abspath(file_path)
-
     def open_phrase_editor(self):
         self.window = QtWidgets.QMainWindow()
         self.ui = PhraseEditor.Ui_PhraseEditor()
@@ -146,14 +145,13 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         self.timer = QTimer()
         self.keyboard = Controller()
         self.previous = None
-
+        self.setUniformRowHeights(False)
     #Строгий фокус
     def focusOutEvent(self, event):
         self.setFocus()
-
     #События кнопок
     def keyPressEvent(self, event):
-        super(MyTreeWidget, self).keyPressEvent(event)
+
         key = event.key()
         current_item = self.currentItem()
         parrent_item = current_item.parent()
@@ -187,27 +185,25 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
                 self.setCurrentItem(current_item.parent().child(digit - 1))
             if(parrent_item is None and self.topLevelItemCount() >= digit):
                 self.setCurrentItem(self.topLevelItem(digit - 1))
-
+        else:
         # Обработка нажатия Enter для раскрытия элемента или вставки текста
-        if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
-            if (current_item is not None and current_item.childCount() > 0):
-                if current_item.isExpanded():
-                    self.setCurrentItem(current_item.child(0))
+            if key == QtCore.Qt.Key_Return or key == QtCore.Qt.Key_Enter:
+                if (current_item is not None and current_item.childCount() > 0):
+                    if current_item.isExpanded():
+                        self.setCurrentItem(current_item.child(0))
+                    else:
+                        self.expandItem(current_item)
                 else:
-                    self.expandItem(current_item)
+                    self.paste()
             else:
-                self.paste()
-
         # Обработка нажатия Backspace для возврата на уровень выше
-        if key == QtCore.Qt.Key_Backspace:
-            parent_item = current_item.parent()
-            if parent_item is not None:
-                self.setCurrentItem(parent_item)
-
-
+                if key == QtCore.Qt.Key_Backspace:
+                    parent_item = current_item.parent()
+                    if parent_item is not None:
+                        self.setCurrentItem(parent_item)
+                else:
+                    self.handle_item_selection()
         self.handle_item_selection()
-            #TODO клавиша вниз
-
     #Событие двойного нажатия мышью
     def mouseDoubleClickEvent(self, e):
         current_item = self.currentItem()
@@ -218,11 +214,9 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
                 self.collapseItem(current_item)
         else:
             self.paste()
-
     # Событие сворачивания элемента
     def itemCollapse(self, item):
         self.setCurrentItem(item)
-
     #Действия при изменении выбранного элемента
     def handle_item_selection(self):
         current_item = self.currentItem()
@@ -241,10 +235,8 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
                 self.timer.setSingleShot(True)
                 self.timer.timeout.connect(self.tooltip.hide)
                 self.timer.start(5000)
-
     def handle_item_change(self, current, previous):
         self.previous = previous
-
     #Действие вставки текста
     def paste(self):
         current_item = self.currentItem()
@@ -261,7 +253,6 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
                 QtCore.QTimer.singleShot(1000, lambda: app.quit())
             else:
                 QtCore.QTimer.singleShot(100, lambda: MainWindow.show())
-
     def numbering(self):
         if (self.previous):
             if (self.currentItem().parent() != self.previous.parent()):
