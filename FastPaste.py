@@ -284,7 +284,6 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
     def return_user_data(self):
         pyperclip.copy(self.user_data)
 
-
 if __name__ == "__main__":
     import sys
     keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p']
