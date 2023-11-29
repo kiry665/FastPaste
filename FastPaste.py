@@ -1,10 +1,12 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
+from multiprocessing import Process
 import sqlite3
 import os
 import pyperclip
 from pynput.keyboard import Key, Controller
 import PhraseEditor
+import configparser
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -23,7 +25,10 @@ class Ui_MainWindow(object):
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
 
-        self.treeWidget = Ui_MainWindow.create_tree_from_database(self, Ui_MainWindow.get_abspath("Database/Local.db"), "Tree", )
+        config = configparser.ConfigParser()
+        config.read(Ui_MainWindow.get_abspath("settings.ini"))
+
+        self.treeWidget = Ui_MainWindow.create_tree_from_database(self, Ui_MainWindow.get_abspath(config["FastPaste"]["database_path"]), "Tree", )
         self.treeWidget.setObjectName("treeWidget")
         self.treeWidget.header().setVisible(False)
         header = self.treeWidget.header()
@@ -134,7 +139,6 @@ class Ui_MainWindow(object):
         MainWindow.close()
 
 class MyTreeWidget(QtWidgets.QTreeWidget):
-    #TODO Сделать нумерацию ветвей дерева для ориентации цифрами
     def __init__(self, parent=None):
         super(MyTreeWidget, self).__init__(parent)
         self.itemSelectionChanged.connect(self.handle_item_selection)
@@ -242,17 +246,20 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         current_item = self.currentItem()
         if (current_item is not None and current_item.childCount() == 0):
             data = current_item.data(0, QtCore.Qt.UserRole)
+            Process(target=self.save_user_data()).start()
             pyperclip.copy(str(data))
             self.tooltip.hide()
             MainWindow.hide()
-            # keyboard = Controller()
+            # keyboard = Controller()1000, lambda: app.quit())
             with self.keyboard.pressed(Key.ctrl):
                 self.keyboard.press('v')
                 self.keyboard.release('v')
             if (ui.checkBox.isChecked()):
                 QtCore.QTimer.singleShot(1000, lambda: app.quit())
+                #pyperclip.copy(self.user_data)
             else:
                 QtCore.QTimer.singleShot(100, lambda: MainWindow.show())
+                Process(target=self.return_user_data())
     def numbering(self):
         if (self.previous):
             if (self.currentItem().parent() != self.previous.parent()):
@@ -269,6 +276,13 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
                 else:
                     for i in range(0, self.previous.parent().childCount()):
                         self.previous.parent().child(i).setText(1,"")
+
+    def save_user_data(self):
+        user = pyperclip.paste()
+        self.user_data = user
+
+    def return_user_data(self):
+        pyperclip.copy(self.user_data)
 
 
 if __name__ == "__main__":

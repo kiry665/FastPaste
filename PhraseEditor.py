@@ -7,13 +7,17 @@ import sqlite3
 import DialogAddPhrase
 import shutil
 import os
+import configparser
 
 class Ui_PhraseEditor(object):
     def setupUi(self, PhraseEditor):
         PhraseEditor.setObjectName("PhraseEditor")
         PhraseEditor.resize(500, 400)
 
-        self.database_file = FastPaste.Ui_MainWindow.get_abspath("Database/Local.db")
+        config = configparser.ConfigParser()
+        config.read(FastPaste.Ui_MainWindow.get_abspath("settings.ini"))
+
+        self.database_file = FastPaste.Ui_MainWindow.get_abspath(config["FastPaste"]["database_path"])
         self.table_name = "Tree"
 
         self.centralwidget = QtWidgets.QWidget(PhraseEditor)
