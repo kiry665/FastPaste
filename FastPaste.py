@@ -246,20 +246,19 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         current_item = self.currentItem()
         if (current_item is not None and current_item.childCount() == 0):
             data = current_item.data(0, QtCore.Qt.UserRole)
-            Process(target=self.save_user_data()).start()
+
             pyperclip.copy(str(data))
             self.tooltip.hide()
             MainWindow.hide()
-            # keyboard = Controller()1000, lambda: app.quit())
+
             with self.keyboard.pressed(Key.ctrl):
                 self.keyboard.press('v')
                 self.keyboard.release('v')
             if (ui.checkBox.isChecked()):
                 QtCore.QTimer.singleShot(1000, lambda: app.quit())
-                #pyperclip.copy(self.user_data)
             else:
                 QtCore.QTimer.singleShot(100, lambda: MainWindow.show())
-                Process(target=self.return_user_data())
+
     def numbering(self):
         if (self.previous):
             if (self.currentItem().parent() != self.previous.parent()):
@@ -276,13 +275,6 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
                 else:
                     for i in range(0, self.previous.parent().childCount()):
                         self.previous.parent().child(i).setText(1,"")
-
-    def save_user_data(self):
-        user = pyperclip.paste()
-        self.user_data = user
-
-    def return_user_data(self):
-        pyperclip.copy(self.user_data)
 
 if __name__ == "__main__":
     import sys
