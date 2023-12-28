@@ -51,7 +51,7 @@ class DialogAddPhrase(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Редактор записей"))
         self.groupBox_2.setTitle(_translate("Dialog", "Имя записи"))
         self.groupBox.setTitle(_translate("Dialog", "Тип записи"))
         self.radioButton.setText(_translate("Dialog", "Папка"))

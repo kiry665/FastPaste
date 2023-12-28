@@ -1,6 +1,8 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from multiprocessing import Process
+from PyQt5.QtGui import *
+from PyQt5.QtCore import Qt
 import sqlite3
 import os
 import pyperclip
@@ -25,10 +27,10 @@ class Ui_MainWindow(object):
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
 
-        config = configparser.ConfigParser()
-        config.read(Ui_MainWindow.get_abspath("settings.ini"))
+        self.config = configparser.ConfigParser()
+        self.config.read(Ui_MainWindow.get_abspath("settings.ini"))
 
-        self.treeWidget = Ui_MainWindow.create_tree_from_database(self, Ui_MainWindow.get_abspath(config["FastPaste"]["database_path"]), "Tree", )
+        self.treeWidget = Ui_MainWindow.create_tree_from_database(self, Ui_MainWindow.get_abspath(self.config["FastPaste"]["database_path"]), "Tree", )
         self.treeWidget.setObjectName("treeWidget")
         self.treeWidget.header().setVisible(False)
         header = self.treeWidget.header()
@@ -47,6 +49,14 @@ class Ui_MainWindow(object):
         self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox.setObjectName("checkBox")
         self.checkBox.setText("Закрыть")
+        self.checkBox.setTristate(False)
+
+        if(self.config["FastPaste"]["checkbox_close"] == "1"):
+            self.checkBox.setCheckState(Qt.Checked)
+        else:
+            self.checkBox.setCheckState(Qt.Unchecked)
+
+        self.checkBox.stateChanged.connect(self.on_state_changed)
 
         self.horizontalLayout.addWidget(self.checkBox)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -61,10 +71,11 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout)
 
         MainWindow.setCentralWidget(self.centralwidget)
-        # self.center_window(MainWindow)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "FastPaste"))
@@ -126,7 +137,6 @@ class Ui_MainWindow(object):
             return MyTreeWidget()
 
         # Рекурсивная функция для построения дерева
-    #Абсолютный путь для файлов
     def get_abspath(name):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         file_path = os.path.join(dir_path, name)
@@ -137,15 +147,26 @@ class Ui_MainWindow(object):
         self.ui.setupUi(self.window)
         self.window.show()
         MainWindow.close()
+    def on_state_changed(self):
+        if(self.checkBox.isChecked()):
+            self.config["FastPaste"]["checkbox_close"] = str(1)
+        else:
+            self.config["FastPaste"]["checkbox_close"] = str(0)
+        with open("settings.ini",'w') as config:
+            self.config.write(config)
+    def eventFilter(self, qobject, qevent):
+        qtype = qevent.type()
+        if qtype == QEvent.Close:
+            print("here")
 
-class MyTreeWidget(QtWidgets.QTreeWidget):
+class MyTreeWidget(QTreeWidget):
     def __init__(self, parent=None):
         super(MyTreeWidget, self).__init__(parent)
         self.itemSelectionChanged.connect(self.handle_item_selection)
         self.currentItemChanged.connect(self.handle_item_change)
         self.itemCollapsed.connect(self.itemCollapse)
-        self.tooltip = QtWidgets.QLabel(self)
-        self.tooltip.setWindowFlags(QtCore.Qt.ToolTip)
+        self.tooltip = QLabel(self)
+        self.tooltip.setWindowFlags(Qt.ToolTip)
         self.timer = QTimer()
         self.keyboard = Controller()
         self.previous = None
@@ -251,13 +272,18 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
             self.tooltip.hide()
             MainWindow.hide()
 
-            with self.keyboard.pressed(Key.ctrl):
-                self.keyboard.press('v')
-                self.keyboard.release('v')
+            self.key_press()
+
+
             if (ui.checkBox.isChecked()):
-                QtCore.QTimer.singleShot(1000, lambda: app.quit())
+                QTimer.singleShot(1000, lambda: app.quit())
             else:
-                QtCore.QTimer.singleShot(100, lambda: MainWindow.show())
+                QTimer.singleShot(200, lambda: MainWindow.show())
+
+    def key_press(self):
+        with self.keyboard.pressed(Key.ctrl):
+            self.keyboard.press('v')
+            self.keyboard.release('v')
 
     def numbering(self):
         if (self.previous):
@@ -279,8 +305,8 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
 if __name__ == "__main__":
     import sys
     keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p']
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
+    app = QApplication(sys.argv)
+    MainWindow = QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
