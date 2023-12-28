@@ -13,6 +13,7 @@ class Ui_PhraseEditor(object):
     def setupUi(self, PhraseEditor):
         PhraseEditor.setObjectName("PhraseEditor")
         PhraseEditor.resize(500, 400)
+        self.mw = PhraseEditor
 
         config = configparser.ConfigParser()
         config.read(FastPaste.Ui_MainWindow.get_abspath("settings.ini"))
@@ -77,6 +78,7 @@ class Ui_PhraseEditor(object):
 
         self.retranslateUi(PhraseEditor)
         QtCore.QMetaObject.connectSlotsByName(PhraseEditor)
+        QtCore.QCoreApplication.instance().aboutToQuit.connect(self.closeEvent)
     def retranslateUi(self, PhraseEditor):
         _translate = QtCore.QCoreApplication.translate
         PhraseEditor.setWindowTitle(_translate("PhraseEditor", "Редактировать фразы"))
@@ -233,6 +235,9 @@ class Ui_PhraseEditor(object):
         backup_root = FastPaste.Ui_MainWindow.get_abspath("Database/Backup")
         root, extension = os.path.splitext(self.database_file)
         shutil.copyfile(self.database_file, backup_root + "_backup "+ current_time + extension)
+    def closeEvent(self):
+
+        FastPaste.main()
 
 class MyTreeWidget(QtWidgets.QTreeWidget):
     def __init__(self, parent=None):

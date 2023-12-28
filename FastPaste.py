@@ -5,7 +5,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
 import sqlite3
 import os
-import pyperclip
+import pyperclip, sys
 from pynput.keyboard import Key, Controller
 import PhraseEditor
 import configparser
@@ -15,6 +15,7 @@ class Ui_MainWindow(object):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(400, 500)
         MainWindow.setStatusTip("")
+        self.mw = MainWindow
 
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -75,6 +76,8 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+        QtCore.QCoreApplication.instance().aboutToQuit.connect(self.closeEvent)
+
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -123,7 +126,9 @@ class Ui_MainWindow(object):
             # Строим дерево начиная с корневого узла (узлов с parent_id = 0)
             build_tree(tree, 0)
 
-            for i in range(0, tree.topLevelItemCount()):
+            keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p']
+            count = len(keys) if tree.topLevelItemCount() > len(keys) else tree.topLevelItemCount()
+            for i in range(count):
                 tree.topLevelItem(i).setText(1, keys[i])
 
             conn.close()
@@ -146,18 +151,15 @@ class Ui_MainWindow(object):
         self.ui = PhraseEditor.Ui_PhraseEditor()
         self.ui.setupUi(self.window)
         self.window.show()
-        MainWindow.close()
+        self.mw.close()
     def on_state_changed(self):
         if(self.checkBox.isChecked()):
             self.config["FastPaste"]["checkbox_close"] = str(1)
         else:
             self.config["FastPaste"]["checkbox_close"] = str(0)
+    def closeEvent(self):
         with open("settings.ini",'w') as config:
             self.config.write(config)
-    def eventFilter(self, qobject, qevent):
-        qtype = qevent.type()
-        if qtype == QEvent.Close:
-            print("here")
 
 class MyTreeWidget(QTreeWidget):
     def __init__(self, parent=None):
@@ -286,13 +288,17 @@ class MyTreeWidget(QTreeWidget):
             self.keyboard.release('v')
 
     def numbering(self):
+        keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p']
         if (self.previous):
             if (self.currentItem().parent() != self.previous.parent()):
                 if (self.currentItem().parent() is None):
-                    for i in range(0, self.topLevelItemCount()):
+                    count = len(keys) if self.topLevelItemCount() > len(keys) else self.topLevelItemCount()
+                    for i in range(0, count):
                         self.topLevelItem(i).setText(1, keys[i])
                 else:
-                    for i in range(0, self.currentItem().parent().childCount()):
+                    count = len(keys) if self.currentItem().parent().childCount() > len(
+                        keys) else self.currentItem().parent().childCount()
+                    for i in range(0, count):
                         self.currentItem().parent().child(i).setText(1, keys[i])
 
                 if (self.previous.parent() is None):
@@ -302,12 +308,19 @@ class MyTreeWidget(QTreeWidget):
                     for i in range(0, self.previous.parent().childCount()):
                         self.previous.parent().child(i).setText(1,"")
 
-if __name__ == "__main__":
-    import sys
-    keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p']
+
+def main():
+    global app
     app = QApplication(sys.argv)
+    global MainWindow
     MainWindow = QMainWindow()
+    global ui
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
+
+
