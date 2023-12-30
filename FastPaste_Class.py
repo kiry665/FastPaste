@@ -3,11 +3,11 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from FastPasteUI import Ui_MainWindow
 from TreeWidget_Class import MyTreeWidget
-import sqlite3, os, PhraseEditor, configparser
+import sqlite3, os, PhraseEditor_Class, configparser
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
-        super(MainWindow, self).__init__(parent)#Согласовано.Согласовано.Согласовано.
+        super(MainWindow, self).__init__(parent)
         self.setupUi(self)
     def setupUi(self, MainWindow):
         self.mw = MainWindow
@@ -17,7 +17,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.treeWidget = MainWindow.create_tree_from_database("Database/Local.db", "Tree")
         header = self.treeWidget.header()
-        header.setStretchLastSection(False)  # Последний столбец больше не растягивается
+        header.setStretchLastSection(False)
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         self.treeWidget.setColumnWidth(1, 0)
 
@@ -92,9 +92,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         file_path = os.path.join(dir_path, name)
         return os.path.abspath(file_path)
     def open_phrase_editor(self):
-        self.window = QMainWindow()
-        self.ui2 = PhraseEditor.Ui_PhraseEditor()
-        self.ui2.setupUi(self.window)
+        self.window = PhraseEditor_Class.PhraseEditor()
         self.window.show()
         self.mw.close()
     def on_state_changed(self):
@@ -106,7 +104,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         with open("settings.ini", 'w') as config:
             self.config.write(config)
         event.accept()
-
 
 if __name__ == "__main__":
     import sys

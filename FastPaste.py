@@ -79,14 +79,13 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
         QtCore.QCoreApplication.instance().aboutToQuit.connect(self.closeEvent)
-
-
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "FastPaste"))
         __sortingEnabled = self.treeWidget.isSortingEnabled()
         self.treeWidget.setSortingEnabled(False)
         self.treeWidget.setSortingEnabled(__sortingEnabled)
+
     def create_tree_from_database(self, database_file, table_name):
         def build_tree(parent_item, parent_id):
             if parent_id in self.nodes:

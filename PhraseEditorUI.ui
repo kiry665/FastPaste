@@ -35,7 +35,7 @@
       <widget class="QTreeWidget" name="treeWidget">
        <column>
         <property name="text">
-         <string notr="true">1</string>
+         <string/>
         </property>
        </column>
       </widget>
