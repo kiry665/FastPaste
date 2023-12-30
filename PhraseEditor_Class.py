@@ -10,18 +10,15 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
         super(PhraseEditor, self).__init__(parent)
         self.setupUi(self)
     def setupUi(self, PhraseEditor):
-        super().setupUi(PhraseEditor)
         self.database_file = "Database/Local.db"
         self.table_name = "Tree"
-        self.treeWidget.setParent(None)
         self.treeWidget = self.create_tree_from_database(self.database_file, self.table_name)
-        self.treeWidget.setObjectName("treeWidget")
-        self.treeWidget.header().setVisible(False)
-        self.textEdit.setParent(None)
-        self.textEdit = MyTextEdit(self.splitter)
-        self.textEdit.setObjectName("textEdit")
-        self.textEdit.setEnabled(True)
-
+        self.textEdit = PhraseEdit()
+        self.lineEdit = NameEdit()
+        super().setupUi(PhraseEditor)
+        self.treeWidget.setParent(self.splitter)
+        self.splitter.insertWidget(0, self.treeWidget)
+        self.textEdit.setEnabled(False)
         self.actionaddPhrase.triggered.connect(self.addPhrase)
         self.actionremovePhrase.triggered.connect(self.removePhrase)
         self.actionsave.triggered.connect(self.save_tree)
@@ -117,14 +114,13 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
             for parent_id in self.nodes:
                 self.nodes[parent_id].sort(key=lambda x: x[2])  # сортируем по полю position
 
-            tree = MyTreeWidget(self.splitter)
+            tree = MyTreeWidget()
             tree.setColumnCount(1)  # Один столбец для имени узла
+            tree.header().setVisible(False)
             # Строим дерево начиная с корневого узла (узлов с parent_id = 0)
             build_tree(tree, 0)
-
             conn.close()
             return tree
-
         else:
             mb = QMessageBox()
             mb.setText("Не удалось найти БД")
@@ -170,7 +166,7 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
             child = root.child(index)
             self.traverse_tree(child, parent_id=node_id if parent_id is not None else 0, position=index+1)
     def backup_database(self):
-        now = datetime.now()
+        now = datetime.datetime.now()
         current_time = now.strftime("%d.%m.%y %H.%M")
         backup_root = self.get_abspath("Database/Backup")
         root, extension = os.path.splitext(self.database_file)
@@ -188,12 +184,10 @@ class MyTreeWidget(QTreeWidget):
     def dropEvent(self, e):
         item = self.itemAt(e.pos())
         drop_indicator_position = self.dropIndicatorPosition()
-
         if item and (item.data(0, Qt.UserRole+1) == 0 or drop_indicator_position == QAbstractItemView.AboveItem or drop_indicator_position == QAbstractItemView.BelowItem):
             super(MyTreeWidget, self).dropEvent(e)
         else:
             e.ignore()
-
             MyTreeWidget.moveItem(self, self.currentItem(),item)
     def keyPressEvent(self, event):
         super(MyTreeWidget, self).keyPressEvent(event)
@@ -230,24 +224,33 @@ class MyTreeWidget(QTreeWidget):
                 self.insertTopLevelItem(self.indexOfTopLevelItem(targetItem)+1,sourceItem)
     def handle_item_change(self, current, previous):
         textEdit = self.window().findChild(QTextEdit)
-        #lineEdit.setText("Find")
+        textLine = self.window().findChild(QLineEdit)
         if current:
             if(current.data(0, Qt.UserRole+1) == 0):
-               textEdit.setEnabled(False)
+                textEdit.setEnabled(False)
+                textEdit.setText("")
             elif(current.data(0, Qt.UserRole+1) == 2):
                 textEdit.setEnabled(True)
+                textEdit.setText(current.data(0, Qt.UserRole))
 
-            textEdit.setText(current.data(0, Qt.UserRole))
+            current_item = self.currentItem()
+            textLine.setText(current_item.text(0))
+            textLine.setCursorPosition(0)
 
-class MyTextEdit(QTextEdit):
+class PhraseEdit(QTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.treeWidget = self.window().findChild(QTreeWidget)
         self.textChanged.connect(self.on_text_changed)
     def on_text_changed(self):
-        current_item = self.treeWidget.currentItem()
-        if current_item:
-            current_item.setData(0, Qt.UserRole, self.toPlainText())
+        current_item = self.window().findChild(QTreeWidget).currentItem()
+        current_item.setData(0, Qt.UserRole, self.toPlainText())
+class NameEdit(QLineEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.textChanged.connect(self.on_text_changed)
+    def on_text_changed(self):
+        current_item = self.window().findChild(QTreeWidget).currentItem()
+        current_item.setText(0, self.toPlainText())
 
 if __name__ == "__main__":
     import sys

@@ -16,16 +16,19 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
-     <number>0</number>
+     <number>6</number>
     </property>
     <property name="topMargin">
-     <number>0</number>
+     <number>6</number>
     </property>
     <property name="rightMargin">
-     <number>0</number>
+     <number>6</number>
     </property>
     <property name="bottomMargin">
-     <number>0</number>
+     <number>6</number>
+    </property>
+    <property name="spacing">
+     <number>4</number>
     </property>
     <item row="0" column="0">
      <widget class="QSplitter" name="splitter">
@@ -39,7 +42,52 @@
         </property>
        </column>
       </widget>
-      <widget class="QTextEdit" name="textEdit"/>
+      <widget class="QWidget" name="layoutWidget">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetMinimumSize</enum>
+        </property>
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>17</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Шаблонная фраза</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="textEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>13</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Название</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -69,6 +117,9 @@
    <property name="text">
     <string>addPhrase</string>
    </property>
+   <property name="toolTip">
+    <string>Добавить</string>
+   </property>
   </action>
   <action name="actionremovePhrase">
    <property name="icon">
@@ -77,6 +128,9 @@
    </property>
    <property name="text">
     <string>removePhrse</string>
+   </property>
+   <property name="toolTip">
+    <string>Удалить</string>
    </property>
   </action>
   <action name="actionsave">
@@ -87,10 +141,11 @@
    <property name="text">
     <string>save</string>
    </property>
+   <property name="toolTip">
+    <string>Сохранить</string>
+   </property>
   </action>
  </widget>
- <resources>
-  <include location="Images/res.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
