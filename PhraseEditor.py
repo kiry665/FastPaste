@@ -18,7 +18,7 @@ class Ui_PhraseEditor(object):
         config = configparser.ConfigParser()
         config.read(FastPaste.Ui_MainWindow.get_abspath("settings.ini"))
 
-        self.database_file = FastPaste.Ui_MainWindow.get_abspath(config["FastPaste"]["database_path"])
+        self.database_file = "Database/Local.db"
         self.table_name = "Tree"
 
         self.centralwidget = QtWidgets.QWidget(PhraseEditor)
@@ -236,8 +236,7 @@ class Ui_PhraseEditor(object):
         root, extension = os.path.splitext(self.database_file)
         shutil.copyfile(self.database_file, backup_root + "_backup "+ current_time + extension)
     def closeEvent(self):
-
-        FastPaste.main()
+        pass
 
 class MyTreeWidget(QtWidgets.QTreeWidget):
     def __init__(self, parent=None):
