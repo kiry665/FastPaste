@@ -15,7 +15,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.config = configparser.ConfigParser()
         self.config.read(MainWindow.get_abspath("settings.ini"))
 
-        self.treeWidget = MainWindow.create_tree_from_database("Database/Local.db", "Tree")
+        self.treeWidget = MainWindow.create_tree_from_database(self.get_abspath("Database/Local.db"), "Tree")
         header = self.treeWidget.header()
         header.setStretchLastSection(False)
         header.setSectionResizeMode(0, QHeaderView.Stretch)

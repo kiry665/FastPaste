@@ -12,7 +12,7 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
     def setupUi(self, PhraseEditor):
         self.database_file = "Database/Local.db"
         self.table_name = "Tree"
-        self.treeWidget = self.create_tree_from_database(self.database_file, self.table_name)
+        self.treeWidget = self.create_tree_from_database(self.get_abspath(self.database_file), self.table_name)
         self.textEdit = PhraseEdit()
         self.lineEdit = NameEdit()
         super().setupUi(PhraseEditor)
