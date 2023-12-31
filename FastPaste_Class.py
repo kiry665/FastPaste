@@ -30,6 +30,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.pushButton.clicked.connect(self.open_phrase_editor)
         self.checkBox.stateChanged.connect(self.on_state_changed)
+
+        self.quitAction = QAction('Exit', self)
+        self.quitAction.triggered.connect(qApp.quit)
+
+        self.trayIcon = QSystemTrayIcon(QIcon(self.get_abspath('Images/file.png')), self)
+        self.trayIcon.setToolTip('My Application')
+        self.trayIconMenu = QMenu(self)
+        self.trayIconMenu.addAction(self.quitAction)
+        self.trayIcon.setContextMenu(self.trayIconMenu)
+        self.trayIcon.activated.connect(self.trayIconActivated)
+
     def create_tree_from_database(self, database_file, table_name):
         def build_tree(parent_item, parent_id):
             if parent_id in self.nodes:
@@ -104,7 +115,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         with open("settings.ini", 'w') as config:
             self.config.write(config)
-        event.accept()
+        event.ignore()
+        self.hide()
+        self.trayIcon.show()
+    def trayIconActivated(self, reason):
+        if reason == QSystemTrayIcon.DoubleClick:
+            self.show()
+            self.trayIcon.hide()
 
 if __name__ == "__main__":
     import sys

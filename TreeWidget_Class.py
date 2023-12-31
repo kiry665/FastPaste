@@ -115,14 +115,10 @@ class MyTreeWidget(QTreeWidget):
         current_item = self.currentItem()
         if (current_item is not None and current_item.childCount() == 0):
             data = current_item.data(0, Qt.UserRole)
-
             pyperclip.copy(str(data))
             self.tooltip.hide()
             self.mw.hide()
-
             self.key_press()
-
-
             if (self.ui.checkBox.isChecked()):
                 QTimer.singleShot(1000, lambda: self.mw.close())
             else:
