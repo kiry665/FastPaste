@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Создание записи</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
@@ -37,6 +37,11 @@
         <property name="text">
          <string>Шаблон</string>
         </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>Images/file.png</normaloff>
+          <selectedoff>Images/file.png</selectedoff>Images/file.png</iconset>
+        </property>
         <property name="checked">
          <bool>true</bool>
         </property>
@@ -46,6 +51,11 @@
        <widget class="QRadioButton" name="radioButton">
         <property name="text">
          <string>Папка</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>Images/folder.png</normaloff>
+          <selectedon>Images/folder.png</selectedon>Images/folder.png</iconset>
         </property>
        </widget>
       </item>

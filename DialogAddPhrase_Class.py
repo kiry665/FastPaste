@@ -10,6 +10,8 @@ class DialogAddPhrase(QDialog, Ui_Dialog):
     def setupUi(self, Dialog):
         super().setupUi(Dialog)
         self.buttonBox.accepted.connect(self.name_accept)
+        self.buttonBox.button(QDialogButtonBox.Ok).setText("Ок")
+        self.buttonBox.button(QDialogButtonBox.Cancel).setText("Отмена")
 
     def name_accept(self):
         if(self.get_name()):

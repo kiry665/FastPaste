@@ -93,8 +93,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return os.path.abspath(file_path)
     def open_phrase_editor(self):
         self.window = PhraseEditor_Class.PhraseEditor()
+
         self.window.show()
-        self.mw.close()
+        self.mw.hide()
     def on_state_changed(self):
         if(self.checkBox.isChecked()):
             self.config["FastPaste"]["checkbox_close"] = str(1)
@@ -107,7 +108,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 if __name__ == "__main__":
     import sys
-    global app
     app = QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()

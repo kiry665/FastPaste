@@ -30,10 +30,18 @@ class Ui_Dialog(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(self.groupBox)
         self.verticalLayout.setObjectName("verticalLayout")
         self.radioButton_2 = QtWidgets.QRadioButton(self.groupBox)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("Images/file.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("Images/file.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
+        self.radioButton_2.setIcon(icon)
         self.radioButton_2.setChecked(True)
         self.radioButton_2.setObjectName("radioButton_2")
         self.verticalLayout.addWidget(self.radioButton_2)
         self.radioButton = QtWidgets.QRadioButton(self.groupBox)
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("Images/folder.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("Images/folder.png"), QtGui.QIcon.Selected, QtGui.QIcon.On)
+        self.radioButton.setIcon(icon1)
         self.radioButton.setObjectName("radioButton")
         self.verticalLayout.addWidget(self.radioButton)
         self.verticalLayout_3.addWidget(self.groupBox)
@@ -55,7 +63,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Создание записи"))
         self.groupBox_2.setTitle(_translate("Dialog", "Имя записи"))
         self.groupBox.setTitle(_translate("Dialog", "Тип записи"))
         self.radioButton_2.setText(_translate("Dialog", "Шаблон"))

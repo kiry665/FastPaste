@@ -19,9 +19,12 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
         self.treeWidget.setParent(self.splitter)
         self.splitter.insertWidget(0, self.treeWidget)
         self.textEdit.setEnabled(False)
+
         self.actionaddPhrase.triggered.connect(self.addPhrase)
         self.actionremovePhrase.triggered.connect(self.removePhrase)
         self.actionsave.triggered.connect(self.save_tree)
+    def set_mainWindow(self, mw):
+        self.mw = mw
     def addPhrase(self):
         current_item = self.treeWidget.currentItem()
 
@@ -176,6 +179,10 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
         file_path = os.path.join(dir_path, name)
         return os.path.abspath(file_path)
 
+    def closeEvent(self, event, QCloseEvent=None):
+
+        event.accept()
+
 class MyTreeWidget(QTreeWidget):
     def __init__(self, parent=None):
         super(MyTreeWidget, self).__init__(parent)
@@ -202,8 +209,6 @@ class MyTreeWidget(QTreeWidget):
                     self.setCurrentItem(current_item.child(0))
                 else:
                     self.expandItem(current_item)
-
-
         # Обработка нажатия Backspace для возврата на уровень выше
         if key == Qt.Key_Backspace:
             parent_item = current_item.parent()
@@ -250,7 +255,7 @@ class NameEdit(QLineEdit):
         self.textChanged.connect(self.on_text_changed)
     def on_text_changed(self):
         current_item = self.window().findChild(QTreeWidget).currentItem()
-        current_item.setText(0, self.toPlainText())
+        current_item.setText(0, self.text())
 
 if __name__ == "__main__":
     import sys
