@@ -15,7 +15,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.config = configparser.ConfigParser()
         self.config.read(MainWindow.get_abspath("settings.ini"))
 
-        self.treeWidget = MainWindow.create_tree_from_database(self.get_abspath("Database/Local.db"), "Tree")
+        self.database_file = self.get_abspath("Database/Local.db")
+        self.table_name = "Tree"
+
+        self.treeWidget = MainWindow.create_tree_from_database(self.database_file, self.table_name)
         header = self.treeWidget.header()
         header.setStretchLastSection(False)
         header.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -40,6 +43,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.trayIconMenu.addAction(self.quitAction)
         self.trayIcon.setContextMenu(self.trayIconMenu)
         self.trayIcon.activated.connect(self.trayIconActivated)
+        self.trayIcon.show()
 
     def create_tree_from_database(self, database_file, table_name):
         def build_tree(parent_item, parent_id):
@@ -104,7 +108,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return os.path.abspath(file_path)
     def open_phrase_editor(self):
         self.window = PhraseEditor_Class.PhraseEditor()
-
+        self.window.set_mainWindow(self.mw)
+        self.reload = True
         self.window.show()
         self.mw.hide()
     def on_state_changed(self):
@@ -117,11 +122,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.config.write(config)
         event.ignore()
         self.hide()
-        self.trayIcon.show()
     def trayIconActivated(self, reason):
         if reason == QSystemTrayIcon.DoubleClick:
             self.show()
-            self.trayIcon.hide()
+    def refresh_tree(self):
+        self.treeWidget.setParent(None)
+        self.treeWidget.deleteLater()
+        self.treeWidget = self.create_tree_from_database(self.database_file, self.table_name)
+        if self.treeWidget.topLevelItem(0):
+            self.treeWidget.setCurrentItem(self.treeWidget.topLevelItem(0))
+        header = self.treeWidget.header()
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setVisible(False)
+        self.treeWidget.setColumnWidth(1, 0)
+        self.gridLayout.addWidget(self.treeWidget, 0, 0, 1, 1)
 
 if __name__ == "__main__":
     import sys

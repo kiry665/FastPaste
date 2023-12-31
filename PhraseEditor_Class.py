@@ -10,11 +10,17 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
         super(PhraseEditor, self).__init__(parent)
         self.setupUi(self)
     def setupUi(self, PhraseEditor):
-        self.database_file = "Database/Local.db"
+        self.database_file = self.get_abspath("Database/Local.db")
         self.table_name = "Tree"
-        self.treeWidget = self.create_tree_from_database(self.get_abspath(self.database_file), self.table_name)
+        self.treeWidget = self.create_tree_from_database(self.database_file, self.table_name)
         self.textEdit = PhraseEdit()
         self.lineEdit = NameEdit()
+        self.icon = QIcon()
+        self.icon.addPixmap(QPixmap(self.get_abspath("Images/addFile.png")), QIcon.Normal, QIcon.Off)
+        self.icon1 = QIcon()
+        self.icon1.addPixmap(QPixmap(self.get_abspath("Images/removeFile")), QIcon.Normal, QIcon.Off)
+        self.icon2= QIcon()
+        self.icon2.addPixmap(QPixmap(self.get_abspath("Images/save.png")), QIcon.Normal, QIcon.Off)
         super().setupUi(PhraseEditor)
         self.treeWidget.setParent(self.splitter)
         self.splitter.insertWidget(0, self.treeWidget)
@@ -180,7 +186,8 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
         return os.path.abspath(file_path)
 
     def closeEvent(self, event, QCloseEvent=None):
-
+        self.mw.refresh_tree()
+        self.mw.show()
         event.accept()
 
 class MyTreeWidget(QTreeWidget):
