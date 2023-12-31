@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PhraseEditorUI import Ui_PhraseEditor
-from DialogAddPhrase import DialogAddPhrase
+from DialogAddPhrase_Class import DialogAddPhrase
 import sqlite3, shutil, datetime, os, configparser
 
 class PhraseEditor(QMainWindow, Ui_PhraseEditor):
