@@ -125,7 +125,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.config["FastPaste"]["checkbox_close"] = str(0)
     def closeEvent(self, event):
-        with open("settings.ini", 'w') as config:#Согласовано.Согласовано.
+        with open(os.path.join(os.path.dirname(__file__),"settings.ini"), 'w') as config:#Согласовано.Согласовано.
             self.config.write(config)
         event.ignore()
         self.treeWidget.tooltip.hide()
