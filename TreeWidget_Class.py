@@ -21,6 +21,7 @@ class MyTreeWidget(QTreeWidget):
         self.ui = Ui
     #Строгий фокус
     def focusOutEvent(self, event):
+        self.tooltip.hide()
         self.setFocus()
     #События кнопок
     def keyPressEvent(self, event):
@@ -103,9 +104,10 @@ class MyTreeWidget(QTreeWidget):
                 self.tooltip.setText(str(data))
                 self.tooltip.move(tooltip_position)
                 self.tooltip.show()
-                self.timer.setSingleShot(True)
-                self.timer.timeout.connect(self.tooltip.hide)
-                self.timer.start(5000)
+                #QTimer.singleShot(5000, self.tooltip.hide)
+                # self.timer.setSingleShot(True)
+                # self.timer.timeout.connect(self.tooltip.hide)
+                # self.timer.start(5000)
     def handle_item_change(self, current, previous):
         self.previous = previous
     #Действие вставки текста

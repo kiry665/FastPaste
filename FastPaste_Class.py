@@ -3,6 +3,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from FastPasteUI import Ui_MainWindow
 from TreeWidget_Class import MyTreeWidget
+
 import sqlite3, os, PhraseEditor_Class, configparser, platform
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -48,63 +49,70 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if platform.system() == 'Windows':
             import keyboard
             keyboard.add_hotkey("ctrl+u", self.on_show)
+        if platform.system() == 'Linux':
+            import signal
+            signal.signal(signal.SIGUSR1, self.signal_handler)
+            self.isSignalReceived = False
+            self.timer = QTimer()
+            self.timer.timeout.connect(self.check_signal)
+            self.timer.start(200)
     def create_tree_from_database(self, database_file, table_name):
-        def build_tree(parent_item, parent_id):
-            if parent_id in self.nodes:
-                for row in self.nodes[parent_id]:
-                    node_id, _, position, node_type, name, data = row
-                    item = QTreeWidgetItem(parent_item, [name])
-                    item.setData(0, Qt.UserRole, data)
-                    item.setData(0, Qt.UserRole + 1, node_type)
-                    item.setTextAlignment(1, Qt.AlignRight)
-                    if(node_type == 0):
-                        item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),"Images/folder.png")))
-                    if (node_type == 2):
-                        item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),"Images/file.png")))
-
-                    build_tree(item, node_id)
-
-        if(os.path.isfile(database_file)):
-            conn = sqlite3.connect(database_file)
-            cursor = conn.cursor()
-
-            # Получаем все записи из таблицы
-            cursor.execute("SELECT * FROM " + table_name)
-            rows = cursor.fetchall()
-
-            # Создаем словарь, где ключом будет id узла, а значением будет список его дочерних узлов
-            self.nodes = {}
-            for row in rows:
-                node_id, parent_id, position, node_type, name, data = row
+            def build_tree(parent_item, parent_id):
                 if parent_id in self.nodes:
-                    self.nodes[parent_id].append(row)
-                else:
-                    self.nodes[parent_id] = [row]
+                    for row in self.nodes[parent_id]:
+                        node_id, _, position, node_type, name, data = row
+                        item = QTreeWidgetItem(parent_item, [name])
+                        item.setData(0, Qt.UserRole, data)
+                        item.setData(0, Qt.UserRole + 1, node_type)
+                        item.setTextAlignment(1, Qt.AlignRight)
+                        if(node_type == 0):
+                            item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),"Images/folder.png")))
+                        if (node_type == 2):
+                            item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),"Images/file.png")))
 
-            for parent_id in self.nodes:
-                self.nodes[parent_id].sort(key=lambda x: x[2])  # сортируем по полю position
+                        build_tree(item, node_id)
 
-            tree = MyTreeWidget()
-            tree.setMainWindows(self.mw)
-            tree.setUi(self)
-            tree.setColumnCount(2)  # Один столбец для имени узла
-            # Строим дерево начиная с корневого узла (узлов с parent_id = 0)
-            build_tree(tree, 0)
+            if(os.path.isfile(database_file)):
+                conn = sqlite3.connect(database_file)
+                cursor = conn.cursor()
 
-            keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p']
-            count = len(keys) if tree.topLevelItemCount() > len(keys) else tree.topLevelItemCount()
-            for i in range(count):
-                tree.topLevelItem(i).setText(1, keys[i])
+                # Получаем все записи из таблицы
+                cursor.execute("SELECT * FROM " + table_name)
+                rows = cursor.fetchall()
 
-            conn.close()
-            return tree
+                # Создаем словарь, где ключом будет id узла, а значением будет список его дочерних узлов
+                self.nodes = {}
+                for row in rows:
+                    node_id, parent_id, position, node_type, name, data = row
+                    if parent_id in self.nodes:
+                        self.nodes[parent_id].append(row)
+                    else:
+                        self.nodes[parent_id] = [row]
 
-        else:
-            mb = QMessageBox()
-            mb.setText("Не удалось найти БД")
-            mb.setWindowTitle("Ошибка")
-            mb.exec_()
-            return MyTreeWidget()
+                for parent_id in self.nodes:
+                    self.nodes[parent_id].sort(key=lambda x: x[2])  # сортируем по полю position
+
+                tree = MyTreeWidget()
+                tree.setMainWindows(self.mw)
+                tree.setUi(self)
+                tree.setColumnCount(2)  # Один столбец для имени узла
+                # Строим дерево начиная с корневого узла (узлов с parent_id = 0)
+                build_tree(tree, 0)
+
+                keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p']
+                count = len(keys) if tree.topLevelItemCount() > len(keys) else tree.topLevelItemCount()
+                for i in range(count):
+                    tree.topLevelItem(i).setText(1, keys[i])
+
+                conn.close()
+                return tree
+
+            else:
+                mb = QMessageBox()
+                mb.setText("Не удалось найти БД")
+                mb.setWindowTitle("Ошибка")
+                mb.exec_()
+                return MyTreeWidget()
     def open_phrase_editor(self):
         self.window = PhraseEditor_Class.PhraseEditor()
         self.window.set_mainWindow(self.mw)
@@ -117,9 +125,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.config["FastPaste"]["checkbox_close"] = str(0)
     def closeEvent(self, event):
-        with open("settings.ini", 'w') as config:
+        with open("settings.ini", 'w') as config:#Согласовано.Согласовано.
             self.config.write(config)
         event.ignore()
+        self.treeWidget.tooltip.hide()
         self.hide()
     def trayIconActivated(self, reason):
         if reason == QSystemTrayIcon.DoubleClick:
@@ -139,6 +148,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.treeWidget.setFocus()
     def on_show(self):
         QTimer.singleShot(0,self.show)
+    def signal_handler(self, signal, frame):
+        self.isSignalReceived = True
+    def check_signal(self):
+        if self.isSignalReceived:
+            self.on_show()
+        self.isSignalReceived = False
 
 if __name__ == "__main__":
     import sys
