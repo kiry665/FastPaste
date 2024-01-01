@@ -13,9 +13,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.mw = MainWindow
 
         self.config = configparser.ConfigParser()
-        self.config.read(MainWindow.get_abspath("settings.ini"))
+        self.config.read(os.path.abspath("settings.ini"))
 
-        self.database_file = self.get_abspath("Database/Local.db")
+        self.database_file = os.path.abspath("Database/Local.db")
         self.table_name = "Tree"
 
         self.treeWidget = MainWindow.create_tree_from_database(self.database_file, self.table_name)
@@ -37,14 +37,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.quitAction = QAction('Exit', self)
         self.quitAction.triggered.connect(qApp.quit)
 
-        self.trayIcon = QSystemTrayIcon(QIcon(self.get_abspath('Images/file.png')), self)
+        self.trayIcon = QSystemTrayIcon(QIcon(os.path.abspath('Images/file.png')), self)
         self.trayIcon.setToolTip('My Application')
         self.trayIconMenu = QMenu(self)
         self.trayIconMenu.addAction(self.quitAction)
         self.trayIcon.setContextMenu(self.trayIconMenu)
         self.trayIcon.activated.connect(self.trayIconActivated)
         self.trayIcon.show()
-
     def create_tree_from_database(self, database_file, table_name):
         def build_tree(parent_item, parent_id):
             if parent_id in self.nodes:
@@ -55,9 +54,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     item.setData(0, Qt.UserRole + 1, node_type)
                     item.setTextAlignment(1, Qt.AlignRight)
                     if(node_type == 0):
-                        item.setIcon(0, QIcon(MainWindow.get_abspath(self, "Images/folder.png")))
+                        item.setIcon(0, QIcon(os.path.abspath("Images/folder.png")))
                     if (node_type == 2):
-                        item.setIcon(0, QIcon(MainWindow.get_abspath(self, "Images/file.png")))
+                        item.setIcon(0, QIcon(os.path.abspath("Images/file.png")))
 
                     build_tree(item, node_id)
 
@@ -102,10 +101,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             mb.setWindowTitle("Ошибка")
             mb.exec_()
             return MyTreeWidget()
-    def get_abspath(self, name):
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        file_path = os.path.join(dir_path, name)
-        return os.path.abspath(file_path)
     def open_phrase_editor(self):
         self.window = PhraseEditor_Class.PhraseEditor()
         self.window.set_mainWindow(self.mw)
@@ -137,6 +132,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         header.setVisible(False)
         self.treeWidget.setColumnWidth(1, 0)
         self.gridLayout.addWidget(self.treeWidget, 0, 0, 1, 1)
+        self.treeWidget.setFocus()
 
 if __name__ == "__main__":
     import sys
