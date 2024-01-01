@@ -10,7 +10,7 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
         super(PhraseEditor, self).__init__(parent)
         self.setupUi(self)
     def setupUi(self, PhraseEditor):
-        self.database_file = os.path.abspath("Database/Local.db")
+        self.database_file = os.path.join(os.path.dirname(__file__),"Database/Local.db")
         self.table_name = "Tree"
         self.treeWidget = self.create_tree_from_database(self.database_file, self.table_name)
         self.textEdit = PhraseEdit()
@@ -77,9 +77,9 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
         new_item.setData(0, Qt.UserRole, "")
         new_item.setData(0, Qt.UserRole + 1, type)
         if type == 0:
-            new_item.setIcon(0, QIcon(os.path.abspath('Images/folder.png')))
+            new_item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),'Images/folder.png')))
         else:
-            new_item.setIcon(0, QIcon(os.path.abspath('Images/file.png')))
+            new_item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),'Images/file.png')))
         return new_item
     def create_tree_from_database(self, database_file, table_name):
         def build_tree(parent_item, parent_id):
@@ -91,9 +91,9 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
                     item.setData(0, Qt.UserRole + 1, node_type)
                     item.setTextAlignment(1, Qt.AlignRight)
                     if (node_type == 0):
-                        item.setIcon(0, QIcon(os.path.abspath('Images/folder.png')))
+                        item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),'Images/folder.png')))
                     if (node_type == 2):
-                        item.setIcon(0, QIcon(os.path.abspath('Images/file.png')))
+                        item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),'Images/file.png')))
 
                     build_tree(item, node_id)
 
@@ -171,10 +171,9 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
     def backup_database(self):
         now = datetime.datetime.now()
         current_time = now.strftime("%d.%m.%y %H.%M")
-        backup_root = os.path.abspath("Database/Backup")
+        backup_root = os.path.join(os.path.dirname(__file__),"Database/Backup")
         root, extension = os.path.splitext(self.database_file)
         shutil.copyfile(self.database_file, backup_root + "_backup "+ current_time + extension)
-
     def closeEvent(self, event, QCloseEvent=None):
         self.mw.refresh_tree()
         self.mw.show()

@@ -24,11 +24,9 @@ class MyTreeWidget(QTreeWidget):
         self.setFocus()
     #События кнопок
     def keyPressEvent(self, event):
-
         key = event.key()
         current_item = self.currentItem()
         parrent_item = current_item.parent()
-
         keys = [
             Qt.Key_1,
             Qt.Key_2,

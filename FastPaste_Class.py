@@ -3,7 +3,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from FastPasteUI import Ui_MainWindow
 from TreeWidget_Class import MyTreeWidget
-import sqlite3, os, PhraseEditor_Class, configparser
+import sqlite3, os, PhraseEditor_Class, configparser, platform
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -13,9 +13,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.mw = MainWindow
 
         self.config = configparser.ConfigParser()
-        self.config.read(os.path.abspath("settings.ini"))
+        self.config.read(os.path.join(os.path.dirname(__file__),"settings.ini"))
 
-        self.database_file = os.path.abspath("Database/Local.db")
+        self.database_file = os.path.join(os.path.dirname(__file__),"Database/Local.db")
         self.table_name = "Tree"
 
         self.treeWidget = MainWindow.create_tree_from_database(self.database_file, self.table_name)
@@ -37,13 +37,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.quitAction = QAction('Exit', self)
         self.quitAction.triggered.connect(qApp.quit)
 
-        self.trayIcon = QSystemTrayIcon(QIcon(os.path.abspath('Images/file.png')), self)
+        self.trayIcon = QSystemTrayIcon(QIcon(os.path.join(os.path.dirname(__file__),'Images/file.png')), self)
         self.trayIcon.setToolTip('My Application')
         self.trayIconMenu = QMenu(self)
         self.trayIconMenu.addAction(self.quitAction)
         self.trayIcon.setContextMenu(self.trayIconMenu)
         self.trayIcon.activated.connect(self.trayIconActivated)
         self.trayIcon.show()
+
+        if platform.system() == 'Windows':
+            import keyboard
+            keyboard.add_hotkey("ctrl+u", self.on_show)
     def create_tree_from_database(self, database_file, table_name):
         def build_tree(parent_item, parent_id):
             if parent_id in self.nodes:
@@ -54,9 +58,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     item.setData(0, Qt.UserRole + 1, node_type)
                     item.setTextAlignment(1, Qt.AlignRight)
                     if(node_type == 0):
-                        item.setIcon(0, QIcon(os.path.abspath("Images/folder.png")))
+                        item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),"Images/folder.png")))
                     if (node_type == 2):
-                        item.setIcon(0, QIcon(os.path.abspath("Images/file.png")))
+                        item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),"Images/file.png")))
 
                     build_tree(item, node_id)
 
@@ -133,6 +137,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.treeWidget.setColumnWidth(1, 0)
         self.gridLayout.addWidget(self.treeWidget, 0, 0, 1, 1)
         self.treeWidget.setFocus()
+    def on_show(self):
+        QTimer.singleShot(0,self.show)
 
 if __name__ == "__main__":
     import sys
