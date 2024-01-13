@@ -1,7 +1,10 @@
+import asyncio
+import time
+
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from pynput.keyboard import Key, Controller
-import pyperclip
+import pyperclip, subprocess
 
 class MyTreeWidget(QTreeWidget):
     def __init__(self, parent=None):
@@ -115,14 +118,18 @@ class MyTreeWidget(QTreeWidget):
         current_item = self.currentItem()
         if (current_item is not None and current_item.childCount() == 0):
             data = current_item.data(0, Qt.UserRole)
-            pyperclip.copy(str(data))
             self.tooltip.hide()
             self.mw.hide()
-            self.key_press()
+
+            self.linux_paste(data)
+
+            # pyperclip.copy(str(data))
+            # self.key_press()
             if (self.ui.checkBox.isChecked()):
                 QTimer.singleShot(1000, lambda: self.mw.close())
             else:
-                QTimer.singleShot(200, lambda: self.mw.show())
+                #QTimer.singleShot(200, lambda: self.mw.show())
+                self.mw.show()
     def key_press(self):
         with self.keyboard.pressed(Key.ctrl):
             self.keyboard.press('v')
@@ -147,3 +154,28 @@ class MyTreeWidget(QTreeWidget):
                 else:
                     for i in range(0, self.previous.parent().childCount()):
                         self.previous.parent().child(i).setText(1,"")
+
+    def linux_paste(self, data):
+        command = ["xclip", "-selection", "clipboard", "-t", "text/uri-list", "-o"]
+        result = subprocess.run(command, stdout=subprocess.PIPE)
+
+        if (result.stdout.decode('utf-8').startswith("file:///")):
+            file = True
+            command = "xclip -selection clipboard -t text/uri-list -o > buf"
+            subprocess.run(command, shell=True)
+        else:
+            file = False
+            command = "xclip -selection clipboard -o > buf"
+            subprocess.run(command, shell=True)
+
+        pyperclip.copy(str(data))
+        self.key_press()
+        time.sleep(0.2)
+
+        if (file):
+            command = "cat buf | xclip -i -selection clipboard -t text/uri-list"
+            subprocess.run(command, shell=True)
+        else:
+            command = "cat buf | xclip -i -selection clipboard"
+            subprocess.run(command, shell=True)
+
