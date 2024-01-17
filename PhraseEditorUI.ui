@@ -108,6 +108,8 @@
    <addaction name="actionaddPhrase"/>
    <addaction name="actionremovePhrase"/>
    <addaction name="actionsave"/>
+   <addaction name="actionback"/>
+   <addaction name="actionforward"/>
   </widget>
   <action name="actionaddPhrase">
    <property name="icon">
@@ -143,6 +145,30 @@
    </property>
    <property name="toolTip">
     <string>Сохранить</string>
+   </property>
+  </action>
+  <action name="actionback">
+   <property name="icon">
+    <iconset>
+     <normaloff>Images/back_color.png</normaloff>Images/back_color.png</iconset>
+   </property>
+   <property name="text">
+    <string>back</string>
+   </property>
+   <property name="toolTip">
+    <string> Назад</string>
+   </property>
+  </action>
+  <action name="actionforward">
+   <property name="icon">
+    <iconset>
+     <normaloff>Images/forward_color.png</normaloff>Images/forward_color.png</iconset>
+   </property>
+   <property name="text">
+    <string>forward</string>
+   </property>
+   <property name="toolTip">
+    <string>Вперед</string>
    </property>
   </action>
  </widget>

@@ -3,6 +3,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PhraseEditorUI import Ui_PhraseEditor
 from DialogAddPhrase_Class import DialogAddPhrase
+from UndoRedo_Class import UndoRedo
 import sqlite3, shutil, datetime, os, configparser
 
 class PhraseEditor(QMainWindow, Ui_PhraseEditor):
@@ -23,16 +24,21 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
         self.actionaddPhrase.triggered.connect(self.addPhrase)
         self.actionremovePhrase.triggered.connect(self.removePhrase)
         self.actionsave.triggered.connect(self.save_tree)
+        self.actionback.triggered.connect(self.back)
+        self.actionforward.triggered.connect(self.forward)
+
+        self.undoredo = UndoRedo()
+        self.hidden_items = []
     def set_mainWindow(self, mw):
         self.mw = mw
     def addPhrase(self):
         current_item = self.treeWidget.currentItem()
-
         dialog = QDialog()
         ui = DialogAddPhrase()
         ui.setupUi(dialog)
         if dialog.exec_() == QDialog.Accepted:
             new_item = self.create_item(ui.get_name(), ui.get_type())
+            self.undoredo.push_undo(new_item, 1)
             if current_item is not None:
                 parent_item = current_item.parent()
                 root = ui.get_root()
@@ -50,7 +56,6 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
                 self.treeWidget.addTopLevelItem(new_item)
                 self.treeWidget.setCurrentItem(self.treeWidget.topLevelItem(0))
     def removePhrase(self):
-        #reply = QtWidgets.QMessageBox.question(self.treeWidget, "Подтверждение удаления", "Вы уверены, что хотите удалить элемент? Все внутренние элементы также будут удалены.", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)\
         mb = QMessageBox()
         mb.setIcon(QMessageBox.Question)
         mb.setWindowTitle("Подтверждение удаления")
@@ -62,15 +67,9 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
         mb.exec_()
         current_item = self.treeWidget.currentItem()
         if mb.clickedButton() == buttonY:
-            if current_item is not None:
-                parent = current_item.parent()
-                if parent is not None:
-                    parent.removeChild(current_item)
-                else:
-                    if self.treeWidget.topLevelItemCount() > 0:
-                        self.treeWidget.takeTopLevelItem(self.treeWidget.indexOfTopLevelItem(current_item))
-                        self.textEdit.setText("")
-                        self.textEdit.setEnabled(False)
+            current_item.setHidden(True)
+            self.hidden_items.append(current_item)
+            self.undoredo.push_undo(current_item, 0)
     def create_item(self, name, type):
         new_item = QTreeWidgetItem()
         new_item.setText(0, name)
@@ -132,6 +131,7 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
             return self.MyTreeWidget(self.splitter)
     def save_tree(self):
         self.backup_database()
+        self.remove_hidden_items()
         conn = sqlite3.connect(self.database_file)
         cursor = conn.cursor()
         cursor.execute("DELETE FROM " + self.table_name)
@@ -174,16 +174,42 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
         backup_root = os.path.join(os.path.dirname(__file__),"Database/Backup")
         root, extension = os.path.splitext(self.database_file)
         shutil.copyfile(self.database_file, backup_root + "_backup "+ current_time + extension)
+    def remove_hidden_items(self):
+        for current_item in self.hidden_items:
+            if current_item is not None:
+                parent = current_item.parent()
+                if parent is not None:
+                    parent.removeChild(current_item)
+                else:
+                    if self.treeWidget.topLevelItemCount() > 0:
+                        self.treeWidget.takeTopLevelItem(self.treeWidget.indexOfTopLevelItem(current_item))
+                        self.textEdit.setText("")
+                        self.textEdit.setEnabled(False)
     def closeEvent(self, event, QCloseEvent=None):
         self.mw.refresh_tree()
         self.mw.show()
         event.accept()
+    def back(self):
+        if not self.undoredo.undo_is_empty():
+            element = self.undoredo.pop_undo()
+            if element[1] == 0:
+                element[0].setHidden(False)
+            else:
+                element[0].setHidden(True)
+    def forward(self):
+        if not self.undoredo.redo_is_empty():
+            element = self.undoredo.pop_redo()
+            if element[1] == 0:
+                element[0].setHidden(True)
+            else:
+                element[0].setHidden(False)
 
 class MyTreeWidget(QTreeWidget):
     def __init__(self, parent=None):
         super(MyTreeWidget, self).__init__(parent)
         self.setDragDropMode(MyTreeWidget.InternalMove)
         self.currentItemChanged.connect(self.handle_item_change)
+        self.itemCollapsed.connect(self.itemCollapse)
     def dropEvent(self, e):
         item = self.itemAt(e.pos())
         drop_indicator_position = self.dropIndicatorPosition()
@@ -237,14 +263,16 @@ class MyTreeWidget(QTreeWidget):
             current_item = self.currentItem()
             textLine.setText(current_item.text(0))
             textLine.setCursorPosition(0)
-
+    def itemCollapse(self, item):
+        self.setCurrentItem(item)
 class PhraseEdit(QTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.textChanged.connect(self.on_text_changed)
     def on_text_changed(self):
         current_item = self.window().findChild(QTreeWidget).currentItem()
-        current_item.setData(0, Qt.UserRole, self.toPlainText())
+        if current_item:
+            current_item.setData(0, Qt.UserRole, self.toPlainText())
 class NameEdit(QLineEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
