@@ -113,8 +113,8 @@
   </widget>
   <action name="actionaddPhrase">
    <property name="icon">
-    <iconset>
-     <normaloff>Images/addFile.png</normaloff>Images/addFile.png</iconset>
+    <iconset resource="res.qrc">
+     <normaloff>:/Images/Images/addFile.png</normaloff>:/Images/Images/addFile.png</iconset>
    </property>
    <property name="text">
     <string>addPhrase</string>
@@ -125,8 +125,8 @@
   </action>
   <action name="actionremovePhrase">
    <property name="icon">
-    <iconset>
-     <normaloff>Images/removeFile.png</normaloff>Images/removeFile.png</iconset>
+    <iconset resource="res.qrc">
+     <normaloff>:/Images/Images/removeFile.png</normaloff>:/Images/Images/removeFile.png</iconset>
    </property>
    <property name="text">
     <string>removePhrse</string>
@@ -137,8 +137,8 @@
   </action>
   <action name="actionsave">
    <property name="icon">
-    <iconset>
-     <normaloff>Images/save.png</normaloff>Images/save.png</iconset>
+    <iconset resource="res.qrc">
+     <normaloff>:/Images/Images/save.png</normaloff>:/Images/Images/save.png</iconset>
    </property>
    <property name="text">
     <string>save</string>
@@ -149,8 +149,8 @@
   </action>
   <action name="actionback">
    <property name="icon">
-    <iconset>
-     <normaloff>Images/back_color.png</normaloff>Images/back_color.png</iconset>
+    <iconset resource="res.qrc">
+     <normaloff>:/Images/Images/back_color.png</normaloff>:/Images/Images/back_color.png</iconset>
    </property>
    <property name="text">
     <string>back</string>
@@ -161,8 +161,8 @@
   </action>
   <action name="actionforward">
    <property name="icon">
-    <iconset>
-     <normaloff>Images/forward_color.png</normaloff>Images/forward_color.png</iconset>
+    <iconset resource="res.qrc">
+     <normaloff>:/Images/Images/forward_color.png</normaloff>:/Images/Images/forward_color.png</iconset>
    </property>
    <property name="text">
     <string>forward</string>
@@ -172,6 +172,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
  <connections/>
 </ui>

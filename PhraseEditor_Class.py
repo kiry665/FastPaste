@@ -5,6 +5,7 @@ from PhraseEditorUI import Ui_PhraseEditor
 from DialogAddPhrase_Class import DialogAddPhrase
 from UndoRedo_Class import UndoRedo
 import sqlite3, shutil, datetime, os, configparser
+import res_rc
 
 class PhraseEditor(QMainWindow, Ui_PhraseEditor):
     def __init__(self, parent=None):
@@ -90,9 +91,13 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
                     item.setData(0, Qt.UserRole + 1, node_type)
                     item.setTextAlignment(1, Qt.AlignRight)
                     if (node_type == 0):
-                        item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),'Images/folder.png')))
+                        icon = QIcon()
+                        icon.addPixmap(QPixmap(":/Images/Images/folder.png"))
+                        item.setIcon(0, icon)
                     if (node_type == 2):
-                        item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),'Images/file.png')))
+                        icon = QIcon()
+                        icon.addPixmap(QPixmap(":/Images/Images/file.png"))
+                        item.setIcon(0, icon)
 
                     build_tree(item, node_id)
 

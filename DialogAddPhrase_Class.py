@@ -2,6 +2,7 @@ from DialogAddPhraseUI import Ui_Dialog
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+import res_rc
 class DialogAddPhrase(QDialog, Ui_Dialog):
     def __init__(self, parent=None):
         super(DialogAddPhrase, self).__init__(parent)

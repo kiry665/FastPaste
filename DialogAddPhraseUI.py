@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'DialogAddPhraseUI.ui'
+# Form implementation generated from reading ui file '.\DialogAddPhraseUI.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.10
 #
@@ -9,12 +9,13 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+import res_rc
 
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(134, 156)
+        Dialog.resize(134, 160)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.groupBox_2 = QtWidgets.QGroupBox(Dialog)
@@ -31,16 +32,14 @@ class Ui_Dialog(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.radioButton_2 = QtWidgets.QRadioButton(self.groupBox)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("Images/file.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon.addPixmap(QtGui.QPixmap("Images/file.png"), QtGui.QIcon.Selected, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/Images/Images/file.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.radioButton_2.setIcon(icon)
         self.radioButton_2.setChecked(True)
         self.radioButton_2.setObjectName("radioButton_2")
         self.verticalLayout.addWidget(self.radioButton_2)
         self.radioButton = QtWidgets.QRadioButton(self.groupBox)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("Images/folder.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon1.addPixmap(QtGui.QPixmap("Images/folder.png"), QtGui.QIcon.Selected, QtGui.QIcon.On)
+        icon1.addPixmap(QtGui.QPixmap(":/Images/Images/folder.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.radioButton.setIcon(icon1)
         self.radioButton.setObjectName("radioButton")
         self.verticalLayout.addWidget(self.radioButton)
@@ -69,6 +68,7 @@ class Ui_Dialog(object):
         self.radioButton_2.setText(_translate("Dialog", "Шаблон"))
         self.radioButton.setText(_translate("Dialog", "Папка"))
         self.checkBox.setText(_translate("Dialog", "Добавить в корневую папку"))
+
 
 
 if __name__ == "__main__":

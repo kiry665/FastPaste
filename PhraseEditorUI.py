@@ -9,7 +9,6 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import os
 
 
 class Ui_PhraseEditor(object):
@@ -60,27 +59,27 @@ class Ui_PhraseEditor(object):
         PhraseEditor.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
         self.actionaddPhrase = QtWidgets.QAction(PhraseEditor)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__), "Images/addFile.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/Images/Images/addFile.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionaddPhrase.setIcon(icon)
         self.actionaddPhrase.setObjectName("actionaddPhrase")
         self.actionremovePhrase = QtWidgets.QAction(PhraseEditor)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__),"Images/removeFile.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(":/Images/Images/removeFile.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionremovePhrase.setIcon(icon1)
         self.actionremovePhrase.setObjectName("actionremovePhrase")
         self.actionsave = QtWidgets.QAction(PhraseEditor)
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__), "Images/save.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap(":/Images/Images/save.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionsave.setIcon(icon2)
         self.actionsave.setObjectName("actionsave")
         self.actionback = QtWidgets.QAction(PhraseEditor)
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__),"Images/back_color.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon3.addPixmap(QtGui.QPixmap(":/Images/Images/back_color.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionback.setIcon(icon3)
         self.actionback.setObjectName("actionback")
         self.actionforward = QtWidgets.QAction(PhraseEditor)
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(os.path.join(os.path.dirname(__file__),"Images/forward_color.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon4.addPixmap(QtGui.QPixmap(":/Images/Images/forward_color.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionforward.setIcon(icon4)
         self.actionforward.setObjectName("actionforward")
         self.toolBar.addAction(self.actionaddPhrase)
@@ -108,6 +107,7 @@ class Ui_PhraseEditor(object):
         self.actionback.setToolTip(_translate("PhraseEditor", " Назад"))
         self.actionforward.setText(_translate("PhraseEditor", "forward"))
         self.actionforward.setToolTip(_translate("PhraseEditor", "Вперед"))
+import res_rc
 
 
 if __name__ == "__main__":

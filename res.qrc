@@ -1,0 +1,14 @@
+<RCC>
+  <qresource prefix="Images">
+    <file>Images/addFile.png</file>
+    <file>Images/back_color.png</file>
+    <file>Images/back_gray.png</file>
+    <file>Images/cross.png</file>
+    <file>Images/file.png</file>
+    <file>Images/folder.png</file>
+    <file>Images/forward_color.png</file>
+    <file>Images/forward_gray.png</file>
+    <file>Images/removeFile.png</file>
+    <file>Images/save.png</file>
+  </qresource>
+</RCC>

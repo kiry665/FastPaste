@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>134</width>
-    <height>156</height>
+    <height>160</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,9 +38,8 @@
          <string>Шаблон</string>
         </property>
         <property name="icon">
-         <iconset>
-          <normaloff>Images/file.png</normaloff>
-          <selectedoff>Images/file.png</selectedoff>Images/file.png</iconset>
+         <iconset resource="res.qrc">
+          <normaloff>:/Images/Images/file.png</normaloff>:/Images/Images/file.png</iconset>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -53,9 +52,8 @@
          <string>Папка</string>
         </property>
         <property name="icon">
-         <iconset>
-          <normaloff>Images/folder.png</normaloff>
-          <selectedon>Images/folder.png</selectedon>Images/folder.png</iconset>
+         <iconset resource="res.qrc">
+          <normaloff>:/Images/Images/folder.png</normaloff>:/Images/Images/folder.png</iconset>
         </property>
        </widget>
       </item>
@@ -85,7 +83,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

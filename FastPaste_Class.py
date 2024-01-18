@@ -5,6 +5,7 @@ from FastPasteUI import Ui_MainWindow
 from TreeWidget_Class import MyTreeWidget
 
 import sqlite3, os, PhraseEditor_Class, configparser, platform
+import res_rc
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -66,9 +67,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         item.setData(0, Qt.UserRole + 1, node_type)
                         item.setTextAlignment(1, Qt.AlignRight)
                         if(node_type == 0):
-                            item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),"Images/folder.png")))
+                            icon = QIcon()
+                            icon.addPixmap(QPixmap(":/Images/Images/folder.png"))
+                            item.setIcon(0, icon)
+                            #item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),"Images/folder.png")))
                         if (node_type == 2):
-                            item.setIcon(0, QIcon(os.path.join(os.path.dirname(__file__),"Images/file.png")))
+                            icon = QIcon()
+                            icon.addPixmap(QPixmap(":/Images/Images/file.png"))
+                            item.setIcon(0, icon)
 
                         build_tree(item, node_id)
 
