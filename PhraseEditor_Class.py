@@ -28,7 +28,10 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
         self.actionback.triggered.connect(self.back)
         self.actionforward.triggered.connect(self.forward)
 
-        self.undoredo = UndoRedo()
+        self.actionback.setDisabled(True)
+        self.actionforward.setDisabled(True)
+
+        self.undoredo = UndoRedo(self.actionback, self.actionforward)
         self.hidden_items = []
     def set_mainWindow(self, mw):
         self.mw = mw
@@ -199,15 +202,21 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
             element = self.undoredo.pop_undo()
             if element[1] == 0:
                 element[0].setHidden(False)
+                index_to_remove = self.hidden_items.index(element[0])
+                self.hidden_items.pop(index_to_remove)
             else:
                 element[0].setHidden(True)
+                self.hidden_items.append(element[0])
     def forward(self):
         if not self.undoredo.redo_is_empty():
             element = self.undoredo.pop_redo()
             if element[1] == 0:
                 element[0].setHidden(True)
+                self.hidden_items.append(element[0])
             else:
                 element[0].setHidden(False)
+                index_to_remove = self.hidden_items.index(element[0])
+                self.hidden_items.pop(index_to_remove)
 
 class MyTreeWidget(QTreeWidget):
     def __init__(self, parent=None):
