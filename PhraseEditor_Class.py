@@ -60,6 +60,8 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
                 self.treeWidget.addTopLevelItem(new_item)
                 self.treeWidget.setCurrentItem(self.treeWidget.topLevelItem(0))
     def removePhrase(self):
+        if(self.treeWidget.currentItem() == None):
+            return
         mb = QMessageBox()
         mb.setIcon(QMessageBox.Question)
         mb.setWindowTitle("Подтверждение удаления")
