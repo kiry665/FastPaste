@@ -128,6 +128,9 @@ class MyTreeWidget(QTreeWidget):
                 pyperclip.copy(str(data))
                 self.key_press()
 
+
+
+
             if (self.ui.checkBox.isChecked()):
                 QTimer.singleShot(1000, lambda: self.mw.close())
             else:
