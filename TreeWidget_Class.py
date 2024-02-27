@@ -4,7 +4,7 @@ import time
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from pynput.keyboard import Key, Controller
-import pyperclip, subprocess
+import pyperclip, subprocess, platform
 
 class MyTreeWidget(QTreeWidget):
     def __init__(self, parent=None):
@@ -121,10 +121,16 @@ class MyTreeWidget(QTreeWidget):
             self.tooltip.hide()
             self.mw.hide()
 
-            self.linux_paste(data)
+            current_platform = platform.system()
+            if current_platform == 'Linux':
+                self.linux_paste(data)
+            elif current_platform == 'Windows':
+                pyperclip.copy(str(data))
+                self.key_press()
 
-            # pyperclip.copy(str(data))
-            # self.key_press()
+
+
+
             if (self.ui.checkBox.isChecked()):
                 QTimer.singleShot(1000, lambda: self.mw.close())
             else:
