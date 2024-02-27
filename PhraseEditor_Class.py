@@ -22,6 +22,8 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
         self.splitter.insertWidget(0, self.treeWidget)
         self.textEdit.setEnabled(False)
 
+        self.toolBar.setStyleSheet("QToolBar { background-color: white; }")
+
         self.actionaddPhrase.triggered.connect(self.addPhrase)
         self.actionremovePhrase.triggered.connect(self.removePhrase)
         self.actionsave.triggered.connect(self.save_tree)
@@ -33,8 +35,9 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
 
         self.undoredo = UndoRedo(self.actionback, self.actionforward)
         self.hidden_items = []
-    def set_mainWindow(self, mw):
+    def set_mainWindow(self, mw, revert):
         self.mw = mw
+        self.revert = revert
     def addPhrase(self):
         current_item = self.treeWidget.currentItem()
         dialog = QDialog()
@@ -196,9 +199,13 @@ class PhraseEditor(QMainWindow, Ui_PhraseEditor):
                         self.textEdit.setText("")
                         self.textEdit.setEnabled(False)
     def closeEvent(self, event, QCloseEvent=None):
-        self.mw.refresh_tree()
-        self.mw.show()
-        event.accept()
+        if self.revert:
+            self.mw.refresh_tree()
+            self.mw.show()
+        else:
+            self.mw.refresh_tree()
+            self.mw.show()
+
     def back(self):
         if not self.undoredo.undo_is_empty():
             element = self.undoredo.pop_undo()

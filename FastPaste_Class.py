@@ -33,16 +33,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.checkBox.setCheckState(Qt.Unchecked)
 
-        self.pushButton.clicked.connect(self.open_phrase_editor)
+        self.pushButton.clicked.connect(lambda: self.open_phrase_editor(True))
         self.checkBox.stateChanged.connect(self.on_state_changed)
 
-        self.quitAction = QAction('Exit', self)
-        self.quitAction.triggered.connect(qApp.quit)
 
         self.trayIcon = QSystemTrayIcon(QIcon(os.path.join(os.path.dirname(__file__),'Images/file.png')), self)
-        self.trayIcon.setToolTip('My Application')
+        self.trayIcon.setToolTip("FastPaste")
+
+        self.quitAction = QAction('Выход', self)
+        self.quitAction.triggered.connect(qApp.quit)
+
+        self.showAction = QAction("FastPaste", self)
+        self.showAction.triggered.connect(self.show)
+
+        self.showSettingsAction = QAction("Редактор фраз", self)
+        self.showSettingsAction.triggered.connect(lambda: self.open_phrase_editor(False))
+
         self.trayIconMenu = QMenu(self)
+        self.trayIconMenu.addAction(self.showAction)
+        self.trayIconMenu.addAction(self.showSettingsAction)
         self.trayIconMenu.addAction(self.quitAction)
+
+
         self.trayIcon.setContextMenu(self.trayIconMenu)
         self.trayIcon.activated.connect(self.trayIconActivated)
         self.trayIcon.show()
@@ -119,9 +131,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 mb.setWindowTitle("Ошибка")
                 mb.exec_()
                 return MyTreeWidget()
-    def open_phrase_editor(self):
+    def open_phrase_editor(self, revert):
         self.window = PhraseEditor_Class.PhraseEditor()
-        self.window.set_mainWindow(self.mw)
+        self.window.set_mainWindow(self.mw, revert)
         self.reload = True
         self.window.show()
         self.mw.hide()
@@ -136,8 +148,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         event.ignore()
         self.treeWidget.tooltip.hide()
         self.hide()
+
     def trayIconActivated(self, reason):
         if reason == QSystemTrayIcon.DoubleClick:
+            self.refresh_tree()
             self.show()
     def refresh_tree(self):
         self.treeWidget.setParent(None)
